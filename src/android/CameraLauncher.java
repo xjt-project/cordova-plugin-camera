@@ -62,6 +62,7 @@ import org.apache.cordova.PermissionHelper;
 import org.apache.cordova.PluginResult;
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -103,6 +104,8 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
     public static final int PERMISSION_DENIED_ERROR = 20;
     public static final int TAKE_PIC_SEC = 0;
     public static final int SAVE_TO_ALBUM_SEC = 1;
+    public static final int REQUEST_PICTURE_OK = 0x99;
+    public static final int REQUEST_PICTURE_FAIL = 0x98;
 
     private static final String LOG_TAG = "CameraLauncher";
 
@@ -136,6 +139,7 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
     private String fileName;//文件名字
     private String shadeText[];//阴影文字
     private int compressMultiple;//水印小图片的压缩倍数，设置的越大，返回的小图片尺寸就越低
+    private int cameraType;//水印小图片的压缩倍数，设置的越大，返回的小图片尺寸就越低
 
 
     /**
@@ -158,13 +162,6 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
         }
         LOG.i(LOG_TAG,"action:"+action+",crrent Thread:"+Thread.currentThread());
         if (action.equals("takePicture")) {
-
-            ActivityManager.MemoryInfo mi = new ActivityManager.MemoryInfo();
-            int availMem = (int) (mi.availMem/1024/1024);
-            if(availMem<500){
-               // LOG.i(LOG_TAG,"试着强杀后台应用，以释放内存..........");
-               // this.killBackGroundProcesses();
-            }
 
             LOG.i(LOG_TAG,"applicationId:"+applicationId);
 
@@ -193,14 +190,12 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
 
             //图片水印相关参数
             this.compressMultiple = args.getInt(13);
+            this.cameraType = args.getInt(14);
             String shadeTextStr = args.getString(12);
             Log.i(LOG_TAG,"shadeTextStr:"+shadeTextStr);
+            Log.i(LOG_TAG,"cameraType:"+args.getInt(13));
             if(shadeTextStr!=null && shadeTextStr.equalsIgnoreCase("null")==false){
                 this.shadeText = shadeTextStr.split("\\|");//必须加上转义
-                for (int i=0;i<this.shadeText.length;i++){
-                    Log.i(LOG_TAG,i+"===<<<<<<<>>>>"+shadeText[i]);
-                }
-
             }else{
                 this.shadeText = null;
             }
@@ -221,30 +216,42 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
                 this.encodingType = JPEG;
             }
 
-            try {
-                if (this.srcType == CAMERA) {
-                    this.callTakePicture(destType, encodingType);
-                }
-                else if ((this.srcType == PHOTOLIBRARY) || (this.srcType == SAVEDPHOTOALBUM)) {
-                    // FIXME: Stop always requesting the permission
-                    if(!PermissionHelper.hasPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)) {
-                        PermissionHelper.requestPermission(this, SAVE_TO_ALBUM_SEC, Manifest.permission.READ_EXTERNAL_STORAGE);
-                    } else {
-                        this.getImage(this.srcType, destType, encodingType);
+            if(this.cameraType == 1 && this.srcType == CAMERA){//调用自定义相机
+
+                Intent cameraIntent = new Intent(cordova.getActivity(),CameraActivity2.class);
+                cameraIntent.putExtra("fileName",this.fileName+".jpg");
+                cameraIntent.putExtra("quality",this.mQuality);
+                cameraIntent.putExtra("targetWidth",targetWidth);
+                cameraIntent.putExtra("targetHeight",targetHeight);
+                this.cordova.startActivityForResult((CordovaPlugin) this, cameraIntent, REQUEST_PICTURE_OK);
+
+            }else{
+                try {
+                    if (this.srcType == CAMERA) {
+                        this.callTakePicture(destType, encodingType);
+                    }
+                    else if ((this.srcType == PHOTOLIBRARY) || (this.srcType == SAVEDPHOTOALBUM)) {
+                        // FIXME: Stop always requesting the permission
+                        if(!PermissionHelper.hasPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)) {
+                            PermissionHelper.requestPermission(this, SAVE_TO_ALBUM_SEC, Manifest.permission.READ_EXTERNAL_STORAGE);
+                        } else {
+                            this.getImage(this.srcType, destType, encodingType);
+                        }
                     }
                 }
-            }
-            catch (IllegalArgumentException e)
-            {
-                callbackContext.error("Illegal Argument Exception");
-                PluginResult r = new PluginResult(PluginResult.Status.ERROR);
-                callbackContext.sendPluginResult(r);
-                return true;
-            }
+                catch (IllegalArgumentException e)
+                {
+                    callbackContext.error("Illegal Argument Exception");
+                    PluginResult r = new PluginResult(PluginResult.Status.ERROR);
+                    callbackContext.sendPluginResult(r);
+                    return true;
+                }
 
-            PluginResult r = new PluginResult(PluginResult.Status.NO_RESULT);
-            r.setKeepCallback(true);
-            callbackContext.sendPluginResult(r);
+                PluginResult r = new PluginResult(PluginResult.Status.NO_RESULT);
+                r.setKeepCallback(true);
+                callbackContext.sendPluginResult(r);
+
+            }
 
             return true;
         }else if (action.equals("clearCacheImageFromDisk")){
@@ -914,97 +921,148 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
      */
     public void onActivityResult(int requestCode, int resultCode, Intent intent) {
 
-        // Get src and dest types from request code for a Camera Activity
-        int srcType = (requestCode / 16) - 1;
-        int destType = (requestCode % 16) - 1;
+        if(this.cameraType == 1){
 
-
-        // If Camera Crop
-        if (requestCode >= CROP_CAMERA) {
-            if (resultCode == Activity.RESULT_OK) {
-
-                // Because of the inability to pass through multiple intents, this hack will allow us
-                // to pass arcane codes back.
-                destType = requestCode - CROP_CAMERA;
-
-                final int    fDestType = destType;
-                final Intent fintente = intent;
-                cordova.getThreadPool().execute(new Runnable() {
-                    public void run() {
-                        try {
-                            processResultFromCamera(fDestType, fintente);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                });
-
-            }// If cancelled
-            else if (resultCode == Activity.RESULT_CANCELED) {
-                this.failPicture("Camera cancelled.");
-            }
-
-            // If something else
-            else {
-                this.failPicture("Did not complete!");
-            }
-        }
-        // If CAMERA
-        else if (srcType == CAMERA) {
-            // If image available
-            if (resultCode == Activity.RESULT_OK) {
+            if(resultCode == REQUEST_PICTURE_OK){
                 try {
-                    if (this.allowEdit) {
-                        Uri tmpFile = FileProvider.getUriForFile(cordova.getActivity(),
-                                applicationId + ".provider",
-                                createCaptureFile(this.encodingType));
-                        performCrop(tmpFile, destType, intent);
-                    } else {
-                        final int    fDestType = destType;
-                        final Intent fintente = intent;
-                        cordova.getThreadPool().execute(new Runnable() {
-                            public void run() {
-                                try {
-                                    processResultFromCamera(fDestType, fintente);
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                        });
+                    //需要添加水印
+                    if(shadeText!=null && shadeText.length>0){
 
+                        String filePath = this.getTempDirectoryPath()+"/"+this.fileName+".jpg";
+                        FileInputStream fis = new FileInputStream(filePath);
+                        Bitmap bitmap  = BitmapFactory.decodeStream(fis);
+                        Bitmap newBitmap = this.drawTextToBitmap(bitmap);
+                        File smallImageFile  = createCaptureFile(this.encodingType,this.fileName+"_small");
+                        File bigImageFile  = createCaptureFile(this.encodingType,this.fileName+"_big");
+                        sizeCompress(newBitmap,smallImageFile);
+                        this.saveBitmapToFile(newBitmap,bigImageFile);
+
+                        // Send Uri back to JavaScript for viewing image
+                        this.callbackContext.success(bigImageFile.getAbsolutePath()+"|"+smallImageFile.getAbsolutePath());
+
+                        if(bitmap!=null){
+                            bitmap.recycle();
+                            bitmap = null;
+                        }
+                        if(newBitmap!=null) {
+                            newBitmap.recycle();
+                            newBitmap = null;
+                        }
+                        bigImageFile = null;
+                        smallImageFile = null;
+                    }else{
+                        this.callbackContext.success(this.getTempDirectoryPath()+"/"+this.fileName+".jpg");
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
-                    this.failPicture("Error capturing image.");
+                }
+
+            }else if(resultCode == REQUEST_PICTURE_FAIL){
+                JSONObject jsonObject = new JSONObject();
+                try {
+                    jsonObject.put("msg","图片保存失败，请检查是否还有存储空间");
+                    jsonObject.put("CODE",404);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                this.callbackContext.error(jsonObject);
+            }
+
+            System.gc();
+            Runtime.getRuntime().gc();
+        }else{
+            // Get src and dest types from request code for a Camera Activity
+            int srcType = (requestCode / 16) - 1;
+            int destType = (requestCode % 16) - 1;
+
+            // If Camera Crop
+            if (requestCode >= CROP_CAMERA) {
+                if (resultCode == Activity.RESULT_OK) {
+
+                    // Because of the inability to pass through multiple intents, this hack will allow us
+                    // to pass arcane codes back.
+                    destType = requestCode - CROP_CAMERA;
+
+                    final int fDestType = destType;
+                    final Intent fintente = intent;
+                    cordova.getThreadPool().execute(new Runnable() {
+                        public void run() {
+                            try {
+                                processResultFromCamera(fDestType, fintente);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    });
+
+                }// If cancelled
+                else if (resultCode == Activity.RESULT_CANCELED) {
+                    this.failPicture("Camera cancelled.");
+                }
+
+                // If something else
+                else {
+                    this.failPicture("Did not complete!");
                 }
             }
+            // If CAMERA
+            else if (srcType == CAMERA) {
+                // If image available
+                if (resultCode == Activity.RESULT_OK) {
+                    try {
+                        if (this.allowEdit) {
+                            Uri tmpFile = FileProvider.getUriForFile(cordova.getActivity(),
+                                    applicationId + ".provider",
+                                    createCaptureFile(this.encodingType));
+                            performCrop(tmpFile, destType, intent);
+                        } else {
+                            final int fDestType = destType;
+                            final Intent fintente = intent;
+                            cordova.getThreadPool().execute(new Runnable() {
+                                public void run() {
+                                    try {
+                                        processResultFromCamera(fDestType, fintente);
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                            });
 
-            // If cancelled
-            else if (resultCode == Activity.RESULT_CANCELED) {
-                this.failPicture("Camera cancelled.");
-            }
-
-            // If something else
-            else {
-                this.failPicture("Did not complete!");
-            }
-        }
-        // If retrieving photo from library
-        else if ((srcType == PHOTOLIBRARY) || (srcType == SAVEDPHOTOALBUM)) {
-            if (resultCode == Activity.RESULT_OK && intent != null) {
-                final Intent i = intent;
-                final int finalDestType = destType;
-                cordova.getThreadPool().execute(new Runnable() {
-                    public void run() {
-                        processResultFromGallery(finalDestType, i);
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        this.failPicture("Error capturing image.");
                     }
-                });
-            } else if (resultCode == Activity.RESULT_CANCELED) {
-                this.failPicture("Selection cancelled.");
-            } else {
-                this.failPicture("Selection did not complete!");
+                }
+
+                // If cancelled
+                else if (resultCode == Activity.RESULT_CANCELED) {
+                    this.failPicture("Camera cancelled.");
+                }
+
+                // If something else
+                else {
+                    this.failPicture("Did not complete!");
+                }
+            }
+            // If retrieving photo from library
+            else if ((srcType == PHOTOLIBRARY) || (srcType == SAVEDPHOTOALBUM)) {
+                if (resultCode == Activity.RESULT_OK && intent != null) {
+                    final Intent i = intent;
+                    final int finalDestType = destType;
+                    cordova.getThreadPool().execute(new Runnable() {
+                        public void run() {
+                            processResultFromGallery(finalDestType, i);
+                        }
+                    });
+                } else if (resultCode == Activity.RESULT_CANCELED) {
+                    this.failPicture("Selection cancelled.");
+                } else {
+                    this.failPicture("Selection did not complete!");
+                }
             }
         }
+
     }
 
     private int exifToDegrees(int exifOrientation) {
@@ -1656,8 +1714,8 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
             int lineNumbers = shadeText.length;
             int lineheight;  //水印文字行高
             Paint paint = new Paint();
-            //paint.setColor(Color.parseColor("#FFCE43"));
-            paint.setColor(Color.RED);
+            paint.setColor(Color.parseColor("#FFCE43"));
+            //paint.setColor(Color.RED);
             paint.setTextSize(calculateFontSize(30));
             Typeface font = Typeface.create("Microsoft YaHei",Typeface.BOLD);
             paint.setTypeface(font);
@@ -1674,7 +1732,7 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
             for(int i=0;i<lineNumbers;i++){
                 paint.measureText(this.shadeText[i]);
                 canvas.drawText(this.shadeText[i],startX,startY,paint);
-                startY += lineheight;
+                startY = startY + lineheight-margin;
 
             }
             canvas = null;

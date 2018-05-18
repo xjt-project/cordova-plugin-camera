@@ -79,13 +79,38 @@
                   android:name="android.support.FILE_PROVIDER_PATHS"
                   android:resource="@xml/provider_paths"/>
           </provider>
+          <activity android:name="org.apache.cordova.camera.CameraActivity" 
+          	  android:theme="@android:style/Theme.Holo.NoActionBar.Fullscreen" />
+          	  
+           <activity android:name="org.apache.cordova.camera.CameraActivity2" 
+          	  android:theme="@android:style/Theme.Holo.NoActionBar.Fullscreen" />
         </config-file>
 
         <source-file src="src/android/CameraLauncher.java" target-dir="src/org/apache/cordova/camera" />
         <source-file src="src/android/CordovaUri.java" target-dir="src/org/apache/cordova/camera" />
         <source-file src="src/android/FileHelper.java" target-dir="src/org/apache/cordova/camera" />
         <source-file src="src/android/ExifHelper.java" target-dir="src/org/apache/cordova/camera" />
+        
+        <source-file src="src/android/CameraActivity.java" target-dir="src/org/apache/cordova/camera" />
+        <source-file src="src/android/CameraActivity2.java" target-dir="src/org/apache/cordova/camera" />
+        <source-file src="src/android/CameraManager.java" target-dir="src/org/apache/cordova/camera" />
+        <source-file src="src/android/CameraUtils.java" target-dir="src/org/apache/cordova/camera" />
+        <source-file src="src/android/CameraView.java" target-dir="src/org/apache/cordova/camera" />
+        <source-file src="src/android/CaptureLayout.java" target-dir="src/org/apache/cordova/camera" />
+        <source-file src="src/android/FocusView.java" target-dir="src/org/apache/cordova/camera" />
+        
         <source-file src="src/android/xml/provider_paths.xml" target-dir="res/xml" />
+        
+        <source-file src="src/android/drawable/ic_camera_close.png" target-dir="res/drawable-xxhdpi" />
+        <source-file src="src/android/drawable/ic_camera_done.png" target-dir="res/drawable-xxhdpi" />
+        <source-file src="src/android/drawable/ic_camera_retry.png" target-dir="res/drawable-xxhdpi" />
+        <source-file src="src/android/drawable/ic_camera_switch.png" target-dir="res/drawable-xxhdpi" />
+        <source-file src="src/android/drawable/camera_btn_retry_bg.xml" target-dir="res/drawable" />
+        <source-file src="src/android/drawable/camera_btn_capture_bg.xml" target-dir="res/drawable" />
+        
+        <source-file src="src/android/layout/activity_camera.xml" target-dir="res/layout" />
+        <source-file src="src/android/layout/camera_capture_layout.xml" target-dir="res/layout" />
+        <source-file src="src/android/layout/camera_layout.xml" target-dir="res/layout" />
 
         <js-module src="www/CameraPopoverHandle.js" name="CameraPopoverHandle">
             <clobbers target="CameraPopoverHandle" />
