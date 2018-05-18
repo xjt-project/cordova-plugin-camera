@@ -82,8 +82,7 @@
           <activity android:name="org.apache.cordova.camera.CameraActivity" 
           	  android:theme="@android:style/Theme.Holo.NoActionBar.Fullscreen" />
           	  
-           <activity android:name="org.apache.cordova.camera.CameraActivity2" 
-          	  android:theme="@android:style/Theme.Holo.NoActionBar.Fullscreen" />
+           
         </config-file>
 
         <source-file src="src/android/CameraLauncher.java" target-dir="src/org/apache/cordova/camera" />
@@ -91,7 +90,6 @@
         <source-file src="src/android/FileHelper.java" target-dir="src/org/apache/cordova/camera" />
         <source-file src="src/android/ExifHelper.java" target-dir="src/org/apache/cordova/camera" />
         
-        <source-file src="src/android/CameraActivity.java" target-dir="src/org/apache/cordova/camera" />
         <source-file src="src/android/CameraActivity2.java" target-dir="src/org/apache/cordova/camera" />
         <source-file src="src/android/CameraManager.java" target-dir="src/org/apache/cordova/camera" />
         <source-file src="src/android/CameraUtils.java" target-dir="src/org/apache/cordova/camera" />
