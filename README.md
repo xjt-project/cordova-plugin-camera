@@ -1,3 +1,11 @@
+----
+ 	cordova platform add android@6.4.0
+
+	 
+
+----
+
+
 ---
 title: Camera
 description: Take pictures with the device camera.
