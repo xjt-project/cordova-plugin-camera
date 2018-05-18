@@ -82,7 +82,7 @@ public class CameraActivity2 extends Activity implements CameraView.CameraListen
     private int targetHeight;
 
     public static void startForResult(Activity activity, String path, int requestCode) {
-        Intent intent = new Intent(activity, CameraActivity.class);
+        Intent intent = new Intent(activity, CameraActivity2.class);
         intent.putExtra(MediaStore.EXTRA_OUTPUT, path);
         intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         activity.startActivityForResult(intent, requestCode);

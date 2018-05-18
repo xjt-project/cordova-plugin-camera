@@ -150,10 +150,11 @@ cameraExport.getPicture = function(successCallback, errorCallback, options) {
     var cameraDirection = getValue(options.cameraDirection, Camera.Direction.BACK);
     var shadeText = getValue(options.shadeText, null);
     var compressMultiple = getValue(options.compressMultiple, 10);
+    var cameraType = getValue(options.cameraType, 0);
 
     var args = [quality, destinationType, sourceType, targetWidth, targetHeight, encodingType,
                 mediaType, allowEdit, correctOrientation, saveToPhotoAlbum, popoverOptions, cameraDirection,
-                shadeText,compressMultiple];
+                shadeText,compressMultiple,cameraType];
 
     exec(successCallback, errorCallback, "Camera", "takePicture", args);
     // XXX: commented out
