@@ -122,13 +122,22 @@ static NSString* toBase64(NSData* data) {
     int h = img.size.height;
     int verticaMargin = 10;
     NSArray *remarks=[remark componentsSeparatedByString:@"|"];
-    int lineHeight = [self sizeWithText:[remarks objectAtIndex:0] withFont:font].height;
+    CGSize textSize = [self sizeWithText:[remarks objectAtIndex:0] withFont:font];
+    int lineHeight = textSize.height;
     CGSize size = CGSizeMake(img.size.width, img.size.height+lineHeight*[remarks count]+verticaMargin*[remarks count]);
     UIGraphicsBeginImageContextWithOptions(size,1, 1);
     [img drawInRect:CGRectMake(0, 0, w, h)];
+    /// Make a copy of the default paragraph style
+    NSMutableParagraphStyle *paragraphStyle = [[NSParagraphStyle defaultParagraphStyle] mutableCopy];
+    /// Set line break mode
+    paragraphStyle.lineBreakMode = NSLineBreakByClipping;
+    /// Set text alignment
+    paragraphStyle.alignment = NSTextAlignmentLeft;
+
     NSDictionary *attr = @{
                             NSFontAttributeName:font,//设置字体
-                            NSForegroundColorAttributeName:[UIColor colorWithRed:1.000 green:0.808 blue:0.263 alpha:1.00]//设置字体颜色
+                            NSForegroundColorAttributeName:[UIColor colorWithRed:1.000 green:0.808 blue:0.263 alpha:1.00],//设置字体颜色
+                            NSParagraphStyleAttributeName: paragraphStyle//单行绘制
                            };
     
     float startPointY = img.size.height + verticaMargin;

@@ -1723,7 +1723,7 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
             paint.getTextBounds(this.shadeText[0], 0, this.shadeText[0].length(), rect);
             lineheight = rect.height()+margin*2;//测试出来的文字高度
 
-            newBitmap = Bitmap.createBitmap(bitmap.getWidth(),bitmap.getHeight()+lineNumbers*lineheight+margin, Bitmap.Config.ARGB_8888);
+            newBitmap = Bitmap.createBitmap(bitmap.getWidth(),bitmap.getHeight()+lineNumbers*lineheight+margin/2, Bitmap.Config.ARGB_8888);
             Canvas canvas = new Canvas(newBitmap);
             canvas.drawBitmap( bitmap, 0, 0, null );//在 0，0坐标开始画入src
 
