@@ -14,7 +14,7 @@ import android.view.animation.LinearInterpolator;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 
-import com.xiaojiantong.R;
+import xiaojiantong.com.R;
 
 import org.apache.cordova.LOG;
 

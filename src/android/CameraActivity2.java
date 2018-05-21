@@ -35,7 +35,7 @@ import android.view.View;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
-import com.xiaojiantong.R;
+import xiaojiantong.com.R;
 
 import org.apache.cordova.LOG;
 

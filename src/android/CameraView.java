@@ -24,7 +24,7 @@ import android.view.animation.RotateAnimation;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 
-import com.xiaojiantong.R;
+import xiaojiantong.com.R;
 
 /**
  * Created by hzwangchenyan on 2017/6/13.
