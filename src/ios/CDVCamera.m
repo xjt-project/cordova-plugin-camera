@@ -124,7 +124,7 @@ static NSString* toBase64(NSData* data) {
     NSArray *remarks=[remark componentsSeparatedByString:@"|"];
     CGSize textSize = [self sizeWithText:[remarks objectAtIndex:0] withFont:font];
     int lineHeight = textSize.height;
-    CGSize size = CGSizeMake(img.size.width, img.size.height+lineHeight*[remarks count]+verticaMargin*[remarks count]);
+    CGSize size = CGSizeMake(img.size.width, img.size.height+lineHeight*[remarks count]+verticaMargin*([remarks count] == 1?2:[remarks count]));
     UIGraphicsBeginImageContextWithOptions(size,1, 1);
     [img drawInRect:CGRectMake(0, 0, w, h)];
     /// Make a copy of the default paragraph style
@@ -145,6 +145,7 @@ static NSString* toBase64(NSData* data) {
         [[remarks objectAtIndex:i] drawInRect:CGRectMake(10,startPointY, img.size.width - 10,size.height ) withAttributes:attr];
         startPointY += lineHeight;
     }
+
    
     UIImage *bigImage = UIGraphicsGetImageFromCurrentImageContext();
     UIGraphicsEndImageContext();
