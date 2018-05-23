@@ -112,19 +112,26 @@ static NSString* toBase64(NSData* data) {
 @synthesize hasPendingOperation, pickerController, locationManager;
 
 
-
+//ptions:options
 #pragma 给图片添加水印
--(NSString *)wateRmarkImage:(NSData *)imgData withRemark:(NSString *)remark fileName:(NSString *)fileName compressMultiple:(NSNumber *)compressMultiple
+//-(NSString *)wateRmarkImage:(NSData *)imgData withRemark:(NSString *)remark fileName:(NSString *)fileName compressMultiple:(NSNumber *)compressMultiple
+-(NSString *)wateRmarkImage:(NSData *)imgData withRemark:(NSString *)remark fileName:(NSString *)fileName options:(CDVPictureOptions *)options
 {
     UIImage *img = [UIImage imageWithData:imgData];
     UIFont *font = [UIFont systemFontOfSize:30];
-    int w = img.size.width;
-    int h = img.size.height;
     int verticaMargin = 10;
+//    int w = img.size.width;
+//    int h = img.size.height;
+//    float startPointY = img.size.height + verticaMargin;
+    int w = options.targetSize.width;
+    int h = options.targetSize.height;
+    float startPointY = options.targetSize.height + verticaMargin;
     NSArray *remarks=[remark componentsSeparatedByString:@"|"];
     CGSize textSize = [self sizeWithText:[remarks objectAtIndex:0] withFont:font];
     int lineHeight = textSize.height;
-    CGSize size = CGSizeMake(img.size.width, img.size.height+lineHeight*[remarks count]+verticaMargin*([remarks count] == 1?2:[remarks count]));
+    //CGSize size = CGSizeMake(img.size.width, img.size.height+lineHeight*[remarks count]+verticaMargin*([remarks count] == 1?2:[remarks count]));
+     CGSize size = CGSizeMake(options.targetSize.width, options.targetSize.height+lineHeight*[remarks count]+verticaMargin*([remarks count] == 1?2:[remarks count]));
+    
     UIGraphicsBeginImageContextWithOptions(size,1, 1);
     [img drawInRect:CGRectMake(0, 0, w, h)];
     /// Make a copy of the default paragraph style
@@ -140,7 +147,7 @@ static NSString* toBase64(NSData* data) {
                             NSParagraphStyleAttributeName: paragraphStyle//单行绘制
                            };
     
-    float startPointY = img.size.height + verticaMargin;
+  
     for (int i=0; i<[remarks count]; i++) {
         [[remarks objectAtIndex:i] drawInRect:CGRectMake(10,startPointY, img.size.width - 10,size.height ) withAttributes:attr];
         startPointY += lineHeight;
@@ -157,10 +164,11 @@ static NSString* toBase64(NSData* data) {
     [UIImagePNGRepresentation(bigImage) writeToFile:bigFilePath options:NSAtomicWrite error:nil];//将图片数据写入到文件中去
     
     //图片尺寸压缩
-    CGSize smallSize = CGSizeMake(img.size.width/compressMultiple.intValue, img.size.height/compressMultiple.intValue);
+    CGSize smallSize = CGSizeMake(img.size.width/options.compressMultiple.intValue, img.size.height/options.compressMultiple.intValue);
     UIGraphicsBeginImageContext(smallSize);
     [bigImage drawInRect:CGRectMake(0, 0, smallSize.width, smallSize.height)];
     UIImage *smallImage = UIGraphicsGetImageFromCurrentImageContext();
+    //UIGraphicsPopContext();
     UIGraphicsEndImageContext();
     
     //将小水印图片写入到文件
@@ -274,6 +282,7 @@ static NSString* toBase64(NSData* data) {
 
         CDVCameraPicker* cameraPicker = [CDVCameraPicker createFromPictureOptions:pictureOptions];
         weakSelf.pickerController = cameraPicker;
+        cameraPicker.videoQuality = UIImagePickerControllerQualityTypeLow;
         
         cameraPicker.delegate = weakSelf;
         cameraPicker.callbackId = command.callbackId;
@@ -453,7 +462,7 @@ static NSString* toBase64(NSData* data) {
                 // use image unedited as requested , don't resize
                 data = UIImageJPEGRepresentation(image, 1.0);
             } else {
-                data = UIImageJPEGRepresentation(image, [options.quality floatValue] / 100.0f);
+                data = UIImageJPEGRepresentation(image, ([options.quality floatValue]) / 100.0f);
             }
             
             if (options.usesGeolocation) {
@@ -609,7 +618,9 @@ static NSString* toBase64(NSData* data) {
                     if(options.shadeText == nil){
                         result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:[[self urlTransformer:[NSURL fileURLWithPath:filePath]] absoluteString]];
                     }else{
-                        NSString *shadeFilePath = [self wateRmarkImage:data withRemark:options.shadeText fileName:fileName compressMultiple:options.compressMultiple];
+                     
+                        NSString *shadeFilePath = [self wateRmarkImage:data withRemark:options.shadeText fileName:fileName options:options];
+                           NSLog(@"======>>>%@",shadeFilePath);
                         result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:[[self urlTransformer:[NSURL fileURLWithPath:shadeFilePath]] absoluteString]];
                     }
                 }
