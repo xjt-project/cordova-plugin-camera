@@ -19,7 +19,7 @@ import xiaojiantong.com.R;
 import org.apache.cordova.LOG;
 
 /**
- * Created by hzwangchenyan on 2017/6/14.
+ * 自定义相机视图类
  */
 public class CaptureLayout extends FrameLayout implements View.OnClickListener {
     private View captureRetryLayout;

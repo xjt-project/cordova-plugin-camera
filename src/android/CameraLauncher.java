@@ -52,6 +52,7 @@ import android.util.Base64;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.WindowManager;
 import android.widget.Toast;
 
 import org.apache.cordova.BuildHelper;
@@ -157,13 +158,8 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
         this.applicationId = (String) BuildHelper.getBuildConfigValue(cordova.getActivity(), "APPLICATION_ID");
         this.applicationId = preferences.getString("applicationId", this.applicationId);
 
-        if(args!=null) {
-            LOG.i(LOG_TAG, "args:" + args.toString());
-        }
-        LOG.i(LOG_TAG,"action:"+action+",crrent Thread:"+Thread.currentThread());
         if (action.equals("takePicture")) {
 
-            LOG.i(LOG_TAG,"applicationId:"+applicationId);
 
             this.fileName = System.currentTimeMillis()+"";
 
@@ -192,8 +188,6 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
             this.compressMultiple = args.getInt(13);
             this.cameraType = args.getInt(14);
             String shadeTextStr = args.getString(12);
-            Log.i(LOG_TAG,"shadeTextStr:"+shadeTextStr);
-            Log.i(LOG_TAG,"cameraType:"+args.getInt(13));
             if(shadeTextStr!=null && shadeTextStr.equalsIgnoreCase("null")==false){
                 this.shadeText = shadeTextStr.split("\\|");//必须加上转义
             }else{
@@ -724,10 +718,7 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
                     // Send Uri back to JavaScript for viewing image
                     //this.callbackContext.success(uri.toString()+"|"+smallImageFile.getAbsolutePath());
 
-                    Log.d(LOG_TAG,"start return success............");
                     this.callbackContext.success(bigImageFile.getAbsolutePath()+"|"+smallImageFile.getAbsolutePath());
-
-                    Log.d(LOG_TAG,"end return success............");
 
                     if(newBitmap!=null) {
                         newBitmap.recycle();
@@ -1713,10 +1704,13 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
             int margin = 8;
             int lineNumbers = shadeText.length;
             int lineheight;  //水印文字行高
+            int fontSize = 30;//默认字体大小
+            WindowManager wm1 = this.cordova.getActivity().getWindowManager();
+            int screenWidth = wm1.getDefaultDisplay().getWidth();
+            fontSize = targetWidth/screenWidth;//字体需要根据屏幕的大小计算一下；否则如果图片宽度给的太小，字体会显示的特别大
             Paint paint = new Paint();
             paint.setColor(Color.parseColor("#FFCE43"));
-            //paint.setColor(Color.RED);
-            paint.setTextSize(calculateFontSize(30));
+            paint.setTextSize(calculateFontSize(fontSize));
             Typeface font = Typeface.create("Microsoft YaHei",Typeface.BOLD);
             paint.setTypeface(font);
             Rect rect = new Rect();

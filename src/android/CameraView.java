@@ -27,7 +27,7 @@ import android.widget.ImageView;
 import xiaojiantong.com.R;
 
 /**
- * Created by hzwangchenyan on 2017/6/13.
+ * 相机界面
  */
 public class CameraView extends FrameLayout implements SurfaceHolder.Callback,
         CaptureLayout.ClickListener, View.OnClickListener, SensorEventListener {

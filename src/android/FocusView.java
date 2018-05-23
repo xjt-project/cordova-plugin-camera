@@ -7,7 +7,7 @@ import android.util.AttributeSet;
 import android.view.View;
 
 /**
- * Created by hzwangchenyan on 2017/6/15.
+ * 自定义聚焦视图
  */
 public class FocusView extends View {
     private Paint mPaint;

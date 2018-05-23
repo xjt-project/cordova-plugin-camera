@@ -18,7 +18,7 @@ import android.view.SurfaceHolder;
 import android.view.WindowManager;
 
 /**
- * Created by hzwangchenyan on 2017/6/13.
+ * 相机管理类，单例
  */
 public class CameraManager {
     private static final String TAG = "CameraManager";
@@ -302,6 +302,8 @@ public class CameraManager {
         if (mState != State.STATE_IDLE) {
             setState(State.STATE_IDLE);
         }
+
+        Log.d(TAG, "closeImmediate........");
     }
 
     private void setState(State state) {

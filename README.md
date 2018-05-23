@@ -46,3 +46,15 @@ camera插件iOS、Android实现方式进行了扩展，对官方的扩展包括�
 	````
 	在xcode里面打开 ‘消检通-Info.plist’ 文件，在里面添加NSCameraUsageDescription即可
 	````
+	
+##### 新增的参数或属性
+| 参数 | 类型 | 默认值 | 描述 |
+| --- | --- | --- | --- |
+| shadeText | string | null | 可选参数，使用这个参数的时候Camera.DestinationType必须设置为FILE_URI。底部要添加的水印文字，如果要显示多行水印用\|\分开; 该支持iOS、Android |
+| compressMultiple | number | 10 | 可选参数。与shadeText配合使用，水印小图片的压缩倍数，设置的越大，返回的小图片尺寸就越低；该参数支持iOS、Android|
+| cameraType | number | 0 | 可选参数。0表示使用系统相机，1表示使用自定义相机；该参数参数只支持Android|
+
+##### 新增的方法
+| 函数名 | 参数 | 功能 | 返回值 | 备注 | 
+| --- | --- | --- | --- | --- |
+| clearCacheImageFromDisk | 无 | 清空缓存在磁盘上的所有水印图片 | --- |

@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by hzwangchenyan on 2017/6/13.
+ * 相机工具类
  */
 public class CameraUtils {
     private static final String TAG = "CameraUtils";

@@ -68,7 +68,7 @@ import java.io.IOException;
 
 
 /**
- * Created by hzwangchenyan on 2017/6/15.
+ * 自定义拍照的Acitivity
  */
 public class CameraActivity2 extends Activity implements CameraView.CameraListener {
 
@@ -138,6 +138,7 @@ public class CameraActivity2 extends Activity implements CameraView.CameraListen
             bitmap.recycle();
             bitmap = null;
         }
+
         cleanUp();
     }
 
