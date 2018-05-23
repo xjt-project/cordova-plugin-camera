@@ -1705,9 +1705,9 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
             int lineNumbers = shadeText.length;
             int lineheight;  //水印文字行高
             int fontSize = 30;//默认字体大小
-            WindowManager wm1 = this.cordova.getActivity().getWindowManager();
-            int screenWidth = wm1.getDefaultDisplay().getWidth();
-            fontSize = targetWidth/screenWidth;//字体需要根据屏幕的大小计算一下；否则如果图片宽度给的太小，字体会显示的特别大
+//            WindowManager wm1 = this.cordova.getActivity().getWindowManager();
+//            int screenWidth = wm1.getDefaultDisplay().getWidth();
+//            fontSize = targetWidth/screenWidth;//字体需要根据屏幕的大小计算一下；否则如果图片宽度给的太小，字体会显示的特别大
             Paint paint = new Paint();
             paint.setColor(Color.parseColor("#FFCE43"));
             paint.setTextSize(calculateFontSize(fontSize));
