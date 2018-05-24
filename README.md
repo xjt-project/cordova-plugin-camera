@@ -26,10 +26,10 @@ camera插件iOS、Android实现方式进行了扩展，对官方的扩展包括�
  npm install --save @ionic-native/file
  2，用我们自己的camera替换掉官方的camera插件
  npm install https://github.com/xjt-project/camera
- cordova plugin add	https://github.com/xjt-project/cordova-plugin-camera
+ ionic cordova plugin add	https://github.com/xjt-project/cordova-plugin-camera
  
  注意如果已经安装了官方的camera插件，执行第二步前先执行：
- npm uninstall camera
+ npm uninstall @ionic-native/camera
  cordova plugin remove cordova-plugin-camera
 ````
 

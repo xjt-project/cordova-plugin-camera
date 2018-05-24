@@ -219,12 +219,41 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
 
             if(this.cameraType == 1 && this.srcType == CAMERA){//调用自定义相机
 
-                Intent cameraIntent = new Intent(cordova.getActivity(),CameraActivity2.class);
-                cameraIntent.putExtra("fileName",this.fileName+".jpg");
-                cameraIntent.putExtra("quality",this.mQuality);
-                cameraIntent.putExtra("targetWidth",targetWidth);
-                cameraIntent.putExtra("targetHeight",targetHeight);
-                this.cordova.startActivityForResult((CordovaPlugin) this, cameraIntent, REQUEST_PICTURE_OK);
+                boolean takePicturePermission = PermissionHelper.hasPermission(this, Manifest.permission.CAMERA);
+
+                // CB-10120: The CAMERA permission does not need to be requested unless it is declared
+                // in AndroidManifest.xml. This plugin does not declare it, but others may and so we must
+                // check the package info to determine if the permission is present.
+
+                if (!takePicturePermission) {
+                    takePicturePermission = true;
+                    try {
+                        PackageManager packageManager = this.cordova.getActivity().getPackageManager();
+                        String[] permissionsInPackage = packageManager.getPackageInfo(this.cordova.getActivity().getPackageName(), PackageManager.GET_PERMISSIONS).requestedPermissions;
+                        if (permissionsInPackage != null) {
+                            for (String permission : permissionsInPackage) {
+                                if (permission.equals(Manifest.permission.CAMERA)) {
+                                    takePicturePermission = false;
+                                    break;
+                                }
+                            }
+                        }
+                    } catch (NameNotFoundException e) {
+                        // We are requesting the info for our package, so this should
+                        // never be caught
+                    }
+                }
+                if(takePicturePermission){
+                    Intent cameraIntent = new Intent(cordova.getActivity(),CameraActivity2.class);
+                    cameraIntent.putExtra("fileName",this.fileName+".jpg");
+                    cameraIntent.putExtra("quality",this.mQuality);
+                    cameraIntent.putExtra("targetWidth",targetWidth);
+                    cameraIntent.putExtra("targetHeight",targetHeight);
+                    this.cordova.startActivityForResult((CordovaPlugin) this, cameraIntent, REQUEST_PICTURE_OK);
+
+                }
+
+
 
             }else{
                 try {
@@ -747,6 +776,8 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
 
                     // Send Uri back to JavaScript for viewing image
                     //this.callbackContext.success(uri.toString()+"|"+smallImageFile.getAbsolutePath());
+
+
 
                     this.callbackContext.success(bigImageFile.getAbsolutePath()+"|"+smallImageFile.getAbsolutePath());
 
