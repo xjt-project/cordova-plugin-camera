@@ -52,8 +52,6 @@ import android.util.Base64;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
-import android.view.WindowManager;
-import android.widget.Toast;
 
 import org.apache.cordova.BuildHelper;
 import org.apache.cordova.CallbackContext;
@@ -107,6 +105,7 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
     public static final int SAVE_TO_ALBUM_SEC = 1;
     public static final int REQUEST_PICTURE_OK = 0x99;
     public static final int REQUEST_PICTURE_FAIL = 0x98;
+    public static final int REQUEST_CAMERA = 0x97;
 
     private static final String LOG_TAG = "CameraLauncher";
 
@@ -193,7 +192,10 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
             //图片水印相关参数
             this.compressMultiple = args.getInt(13);
             this.cameraType = args.getInt(14);
-            this.isSaveOfflinePicture = args.getInt(15);
+            LOG.i(LOG_TAG,"args:"+args.length());
+            if(args.length()>15) {
+                this.isSaveOfflinePicture = args.getInt(15);
+            }
             String shadeTextStr = args.getString(12);
             if(shadeTextStr!=null && shadeTextStr.equalsIgnoreCase("null")==false){
                 this.shadeText = shadeTextStr.split("\\|");//必须加上转义
@@ -219,41 +221,16 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
 
             if(this.cameraType == 1 && this.srcType == CAMERA){//调用自定义相机
 
-                boolean takePicturePermission = PermissionHelper.hasPermission(this, Manifest.permission.CAMERA);
-
-                // CB-10120: The CAMERA permission does not need to be requested unless it is declared
-                // in AndroidManifest.xml. This plugin does not declare it, but others may and so we must
-                // check the package info to determine if the permission is present.
-
-                if (!takePicturePermission) {
-                    takePicturePermission = true;
-                    try {
-                        PackageManager packageManager = this.cordova.getActivity().getPackageManager();
-                        String[] permissionsInPackage = packageManager.getPackageInfo(this.cordova.getActivity().getPackageName(), PackageManager.GET_PERMISSIONS).requestedPermissions;
-                        if (permissionsInPackage != null) {
-                            for (String permission : permissionsInPackage) {
-                                if (permission.equals(Manifest.permission.CAMERA)) {
-                                    takePicturePermission = false;
-                                    break;
-                                }
-                            }
-                        }
-                    } catch (NameNotFoundException e) {
-                        // We are requesting the info for our package, so this should
-                        // never be caught
-                    }
-                }
-                if(takePicturePermission){
+                if(!PermissionHelper.hasPermission(this,  Manifest.permission.CAMERA)) {
+                    PermissionHelper.requestPermission(this, REQUEST_CAMERA, Manifest.permission.CAMERA);
+                } else {
                     Intent cameraIntent = new Intent(cordova.getActivity(),CameraActivity2.class);
-                    cameraIntent.putExtra("fileName",this.fileName+".jpg");
+                    cameraIntent.putExtra("fileName",this.getTempDirectoryPath()+"/"+this.fileName+".jpg");
                     cameraIntent.putExtra("quality",this.mQuality);
                     cameraIntent.putExtra("targetWidth",targetWidth);
                     cameraIntent.putExtra("targetHeight",targetHeight);
                     this.cordova.startActivityForResult((CordovaPlugin) this, cameraIntent, REQUEST_PICTURE_OK);
-
                 }
-
-
 
             }else{
                 try {
@@ -262,6 +239,7 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
                     }
                     else if ((this.srcType == PHOTOLIBRARY) || (this.srcType == SAVEDPHOTOALBUM)) {
                         // FIXME: Stop always requesting the permission
+
                         if(!PermissionHelper.hasPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)) {
                             PermissionHelper.requestPermission(this, SAVE_TO_ALBUM_SEC, Manifest.permission.READ_EXTERNAL_STORAGE);
                         } else {
@@ -313,6 +291,22 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
             return true;
         }else if(action.equals("clearAllOfflinePicture")){
 
+            String cachePath = null;
+            // SD Card Mounted
+            if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
+                cachePath = Environment.getExternalStorageDirectory() + offlineImgPath;
+            }
+            // Use internal storage
+            else {
+                cachePath = Environment.getDataDirectory() + offlineImgPath;
+            }
+
+            File files = new File(cachePath);
+            if(files.isDirectory()){
+                for (File f : files.listFiles()){
+                    f.delete();
+                }
+            }
         }else if(action.equals("clearImageByPath")){
 
             if(args==null || args.length() == 0){
@@ -725,7 +719,7 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
                 }
             } else {
                 //新建一个jpeg文件，这个文件是要向js返回的文件
-                File file = createCaptureFile(this.encodingType, this.fileName + "xx");
+                File file = createCaptureFile(this.encodingType, this.fileName);
                 Uri uri = Uri.fromFile(file);
                 LOG.i(LOG_TAG,"new jpeg is len:"+file.length());
                 bitmap = getScaledAndRotatedBitmap(sourcePath);//将文件解析成位图
@@ -772,13 +766,6 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
                     sizeCompress(newBitmap,smallImageFile);
                     this.saveBitmapToFile(newBitmap,bigImageFile);
 
-                 //   Toast.makeText(cordova.getActivity(),this.getCurrentMeminfo(),Toast.LENGTH_LONG).show();
-
-                    // Send Uri back to JavaScript for viewing image
-                    //this.callbackContext.success(uri.toString()+"|"+smallImageFile.getAbsolutePath());
-
-
-
                     this.callbackContext.success(bigImageFile.getAbsolutePath()+"|"+smallImageFile.getAbsolutePath());
 
                     if(newBitmap!=null) {
@@ -791,7 +778,7 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
 
                     //把没有水印的图片删除掉
                     try {
-                        File sourceFile = new File(this.fileName);
+                        File sourceFile = new File(this.getTempDirectoryPath()+"/"+this.fileName+".jpg");
                         if(sourceFile.exists()){
                             sourceFile.delete();
                         }
@@ -1013,6 +1000,16 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
                         }
                         bigImageFile = null;
                         smallImageFile = null;
+
+                        //把没有水印的图片删除掉
+                        try {
+                            File sourceFile = new File(filePath);
+                            if(sourceFile.exists()){
+                                sourceFile.delete();
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }else{
                         this.callbackContext.success(this.getTempDirectoryPath()+"/"+this.fileName+".jpg");
                     }
@@ -1624,6 +1621,14 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
                 break;
             case SAVE_TO_ALBUM_SEC:
                 this.getImage(this.srcType, this.destType, this.encodingType);
+                break;
+            case REQUEST_CAMERA:
+                Intent cameraIntent = new Intent(cordova.getActivity(),CameraActivity2.class);
+                cameraIntent.putExtra("fileName",this.fileName+".jpg");
+                cameraIntent.putExtra("quality",this.mQuality);
+                cameraIntent.putExtra("targetWidth",targetWidth);
+                cameraIntent.putExtra("targetHeight",targetHeight);
+                this.cordova.startActivityForResult((CordovaPlugin) this, cameraIntent, REQUEST_PICTURE_OK);
                 break;
         }
     }
