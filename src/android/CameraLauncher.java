@@ -141,7 +141,11 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
     private String shadeText[];//阴影文字
     private int compressMultiple;//水印小图片的压缩倍数，设置的越大，返回的小图片尺寸就越低
     private int cameraType;//水印小图片的压缩倍数，设置的越大，返回的小图片尺寸就越低
+    private int isSaveOfflinePicture;//是否保存为离线图片 0否 1 是
 
+
+    private final static String tempImgPath= "/xjt/temp";//临时路径
+    private final static String offlineImgPath= "/xjt/offlineimage";//离线图片存储路径
 
     /**
      * Executes the request and returns PluginResult.
@@ -158,6 +162,8 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
         this.applicationId = (String) BuildHelper.getBuildConfigValue(cordova.getActivity(), "APPLICATION_ID");
         this.applicationId = preferences.getString("applicationId", this.applicationId);
 
+        LOG.i(LOG_TAG,"action:"+action);
+        LOG.i(LOG_TAG,"args:"+args);
         if (action.equals("takePicture")) {
 
 
@@ -187,6 +193,7 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
             //图片水印相关参数
             this.compressMultiple = args.getInt(13);
             this.cameraType = args.getInt(14);
+            this.isSaveOfflinePicture = args.getInt(15);
             String shadeTextStr = args.getString(12);
             if(shadeTextStr!=null && shadeTextStr.equalsIgnoreCase("null")==false){
                 this.shadeText = shadeTextStr.split("\\|");//必须加上转义
@@ -253,11 +260,11 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
             String filePath = null;
             // SD Card Mounted
             if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-                filePath = Environment.getExternalStorageDirectory() + "/camera/xjt";
+                filePath = Environment.getExternalStorageDirectory() + tempImgPath;
             }
             // Use internal storage
             else {
-                filePath = Environment.getDataDirectory() + "/camera/xjt";
+                filePath = Environment.getDataDirectory() + tempImgPath;
             }
 
             File file = new File(filePath);
@@ -272,7 +279,28 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
                 }
                 callbackContext.success(buffer.toString());
             }else{
-                callbackContext.error("not exist file in /camera/xjt dir");
+                callbackContext.error("not exist file in "+tempImgPath+" dir");
+            }
+            return true;
+        }else if(action.equals("clearAllOfflinePicture")){
+
+        }else if(action.equals("clearImageByPath")){
+
+            if(args==null || args.length() == 0){
+                callbackContext.error("param illegal");
+            }else{
+
+                try {
+                    for (int i=0;i<args.length();i++){
+                        File file = new File(args.getString(i));
+                        if(file.exists())
+                            file.delete();
+                    }
+                    callbackContext.success("success");
+                }catch (Exception e){
+
+                }
+
             }
             return true;
         }
@@ -288,14 +316,16 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
 
         if (this.shadeText != null && this.shadeText.length > 0) {
 
+
+            String dirPath = isSaveOfflinePicture == 1? offlineImgPath:tempImgPath;
             String cachePath = null;
             // SD Card Mounted
             if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-                cachePath = Environment.getExternalStorageDirectory() + "/camera/xjt";
+                cachePath = Environment.getExternalStorageDirectory() + dirPath;
             }
             // Use internal storage
             else {
-                cachePath = Environment.getDataDirectory() + "/camera/xjt";
+                cachePath = Environment.getDataDirectory() + dirPath;
             }
 
             File cacheFile = new File(cachePath);
@@ -726,6 +756,17 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
                     }
                     bigImageFile = null;
                     smallImageFile = null;
+
+
+                    //把没有水印的图片删除掉
+                    try {
+                        File sourceFile = new File(this.fileName);
+                        if(sourceFile.exists()){
+                            sourceFile.delete();
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }else{
                     // Send Uri back to JavaScript for viewing image
                     this.callbackContext.success(uri.toString());

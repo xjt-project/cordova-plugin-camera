@@ -60,3 +60,24 @@ camera插件iOS、Android实现方式进行了扩展，对官方的扩展包括�
 | clearCacheImageFromDisk | 无 | 清空缓存在磁盘上的所有水印图片 | 如果删除成功会返回所有删除图片的完整路径；如果删除失败返回：not exist file| 如果使用了shadeText添加水印，会将水印大图、水印小图存储在磁盘上面，使用完图片后，应该调用这个方法把图片全部从磁盘中清除 |
 
 ####  新增的方法
+
+
+###
+
+
+	````
+	
+	注意权限：
+   <uses-permission
+        android:name="android.permission.CAMERA"
+        android:required="false" />
+
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.camera.front"
+        android:required="false" />
+        
+        
+	````

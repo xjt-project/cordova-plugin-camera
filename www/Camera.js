@@ -1,3 +1,4 @@
+cordova.define("cordova-plugin-camera.camera", function(require, exports, module) {
 /*
  *
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -151,10 +152,11 @@ cameraExport.getPicture = function(successCallback, errorCallback, options) {
     var shadeText = getValue(options.shadeText, null);
     var compressMultiple = getValue(options.compressMultiple, 10);
     var cameraType = getValue(options.cameraType, 0);
+    var isSaveOfflinePicture = getValue(options.isSaveOfflinePicture, 0);
 
     var args = [quality, destinationType, sourceType, targetWidth, targetHeight, encodingType,
                 mediaType, allowEdit, correctOrientation, saveToPhotoAlbum, popoverOptions, cameraDirection,
-                shadeText,compressMultiple,cameraType];
+                shadeText,compressMultiple,cameraType,isSaveOfflinePicture];
 
     exec(successCallback, errorCallback, "Camera", "takePicture", args);
     // XXX: commented out
@@ -190,4 +192,20 @@ cameraExport.cleanup = function(successCallback, errorCallback) {
 cameraExport.clearCacheImageFromDisk = function(successCallback, errorCallback) {
     exec(successCallback, errorCallback, "Camera", "clearCacheImageFromDisk", []);
 };
+
+cameraExport.clearImageByPath = function(successCallback, errorCallback, paths) {
+//    argscheck.checkArgs('fFO', 'Camera.clearImageByPath', arguments);
+//    paths = paths || {};
+//    var getValue = argscheck.getValue;
+    exec(successCallback, errorCallback, "Camera", "clearImageByPath", paths);
+}
+
+//清除所有离线图片
+cameraExport.clearAllOfflinePicture = function(successCallback, errorCallback) {
+    exec(successCallback, errorCallback, "Camera", "clearAllOfflinePicture", []);
+};
+
+
 module.exports = cameraExport;
+
+});
