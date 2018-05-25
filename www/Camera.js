@@ -194,9 +194,9 @@ cameraExport.clearCacheImageFromDisk = function(successCallback, errorCallback) 
 
 
 cameraExport.clearImageByPath = function(successCallback, errorCallback, paths) {
-    argscheck.checkArgs('fFO', 'Camera.clearImageByPath', arguments);
-    paths = paths || [];
-    var getValue = argscheck.getValue;
+//    argscheck.checkArgs('fFO', 'Camera.clearImageByPath', arguments);
+//    paths = paths || [];
+//    var getValue = argscheck.getValue;
     exec(successCallback, errorCallback, "Camera", "clearImageByPath", paths);
 }
 
