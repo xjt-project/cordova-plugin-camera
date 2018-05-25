@@ -193,6 +193,17 @@ cameraExport.clearCacheImageFromDisk = function(successCallback, errorCallback) 
     exec(successCallback, errorCallback, "Camera", "clearCacheImageFromDisk", []);
 };
 
+<<<<<<< HEAD
+
+cameraExport.clearImageByPath = function(successCallback, errorCallback, paths) {
+    argscheck.checkArgs('fFO', 'Camera.clearImageByPath', arguments);
+    paths = paths || {};
+    var getValue = argscheck.getValue;
+    exec(successCallback, errorCallback, "Camera", "clearImageByPath", paths);
+}
+
+//
+=======
 cameraExport.clearImageByPath = function(successCallback, errorCallback, paths) {
 //    argscheck.checkArgs('fFO', 'Camera.clearImageByPath', arguments);
 //    paths = paths || {};
@@ -201,6 +212,7 @@ cameraExport.clearImageByPath = function(successCallback, errorCallback, paths) 
 }
 
 //清除所有离线图片
+>>>>>>> bad5eafa5228332cdb0fe8eee608ca5ce4e91782
 cameraExport.clearAllOfflinePicture = function(successCallback, errorCallback) {
     exec(successCallback, errorCallback, "Camera", "clearAllOfflinePicture", []);
 };

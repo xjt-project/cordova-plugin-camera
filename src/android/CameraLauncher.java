@@ -192,10 +192,14 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
             //图片水印相关参数
             this.compressMultiple = args.getInt(13);
             this.cameraType = args.getInt(14);
+<<<<<<< HEAD
+            this.isSaveOfflinePicture = args.getInt(15);
+=======
             LOG.i(LOG_TAG,"args:"+args.length());
             if(args.length()>15) {
                 this.isSaveOfflinePicture = args.getInt(15);
             }
+>>>>>>> bad5eafa5228332cdb0fe8eee608ca5ce4e91782
             String shadeTextStr = args.getString(12);
             if(shadeTextStr!=null && shadeTextStr.equalsIgnoreCase("null")==false){
                 this.shadeText = shadeTextStr.split("\\|");//必须加上转义
@@ -595,7 +599,7 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
         } catch (ActivityNotFoundException anfe) {
             LOG.e(LOG_TAG, "Crop operation not supported on this device");
             try {
-               // processResultFromCamera(destType, cameraIntent);
+                // processResultFromCamera(destType, cameraIntent);
 
                 final int    fDestType = destType;
                 final Intent fintente = cameraIntent;
@@ -1340,7 +1344,7 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
             // Load in the smallest bitmap possible that is closest to the size we want
             options.inJustDecodeBounds = false;
             options.inPreferredConfig = Bitmap.Config.ARGB_4444;//降低内存，默认是Bitmap.Config.ARGB_8888
-             /* 下面两个字段需要组合使用 */
+            /* 下面两个字段需要组合使用 */
             options.inPurgeable = true;
             options.inInputShareable = true;
             options.inSampleSize = calculateSampleSize(rotatedWidth, rotatedHeight,  widthHeight[0], widthHeight[1]);
@@ -1799,7 +1803,7 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
             canvas.drawBitmap( bitmap, 0, 0, null );//在 0，0坐标开始画入src
 
             startY = bitmap.getHeight() + 40;
-             //第一行文字
+            //第一行文字
             for(int i=0;i<lineNumbers;i++){
                 paint.measureText(this.shadeText[i]);
                 canvas.drawText(this.shadeText[i],startX,startY,paint);
@@ -1880,7 +1884,7 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
                     for (String pkgName : process.pkgList) {
                         if(pkgName.equals(currentPkg) == false){
                             Log.i(LOG_TAG,"尝试杀死进程:" + pkgName);
-                           // activityManager.killBackgroundProcesses(pkgName);
+                            // activityManager.killBackgroundProcesses(pkgName);
                         }
 
                     }
@@ -1893,15 +1897,5 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
         //List<ActivityManager.RunningAppProcessInfo> processes = ProcessManager.getRunningAppProcessInfo(cordova.getActivity());
     }
 
-
-    private  int PICTURE_SUCCESS = 0x1001;
-    private Handler handler = new Handler() {
-        @Override
-        public void handleMessage(android.os.Message msg) {
-            if(msg.what == PICTURE_SUCCESS){
-
-            }
-        };
-    };
 
 }

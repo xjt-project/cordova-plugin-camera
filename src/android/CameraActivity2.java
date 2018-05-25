@@ -2,66 +2,17 @@ package org.apache.cordova.camera;
 
 
 import android.app.Activity;
-import android.content.pm.PackageManager;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Rect;
-import android.graphics.SurfaceTexture;
-import android.hardware.camera2.CameraAccessException;
-import android.hardware.camera2.CameraCaptureSession;
-import android.hardware.camera2.CameraCharacteristics;
-import android.hardware.camera2.CameraDevice;
-import android.hardware.camera2.CameraManager;
-import android.hardware.camera2.CameraMetadata;
-import android.hardware.camera2.CaptureRequest;
-import android.hardware.camera2.params.StreamConfigurationMap;
-import android.media.ImageReader;
-import android.os.Build;
-import android.os.Environment;
-import android.os.Handler;
-import android.os.HandlerThread;
-import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
-import android.os.Bundle;
-import android.util.Log;
-import android.util.Size;
-import android.util.SparseIntArray;
-import android.view.Display;
-import android.view.Surface;
-import android.view.SurfaceView;
-import android.view.TextureView;
-import android.view.View;
-import android.widget.ImageButton;
-import android.widget.Toast;
-
-import xiaojiantong.com.R;
-
-import org.apache.cordova.LOG;
-
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-
-
-
-import android.app.Activity;
-import android.content.Intent;
-import android.graphics.Bitmap;
-import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.Window;
 import android.view.WindowManager;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -100,7 +51,7 @@ public class CameraActivity2 extends Activity implements CameraView.CameraListen
         quality = this.getIntent().getIntExtra("quality",50);
         targetWidth = this.getIntent().getIntExtra("targetWidth",0);
         targetHeight = this.getIntent().getIntExtra("targetHeight",0);
-        mPath = this.getFilePath()+"/"+this.getIntent().getStringExtra("fileName");
+        mPath = this.getIntent().getStringExtra("fileName");
         mCameraView.setCameraListener(this);
 
     }
@@ -165,24 +116,6 @@ public class CameraActivity2 extends Activity implements CameraView.CameraListen
         mCameraView.onPause();
     }
 
-    private String getFilePath(){
-        String cachePath = null;
-        // SD Card Mounted
-        if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-            cachePath = Environment.getExternalStorageDirectory() + "/camera/xjt";
-        }
-        // Use internal storage
-        else {
-            cachePath = Environment.getDataDirectory() + "/camera/xjt";
-        }
-
-        File cacheFile = new File(cachePath);
-        if (cacheFile.exists() == false) {
-            cacheFile.mkdirs();
-        }
-      //  LOG.i(TAG, "cacheFile path:" + cacheFile.getAbsolutePath());
-        return cacheFile.getAbsolutePath();
-    }
 
     private void cleanUp(){
         System.gc();
