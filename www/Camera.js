@@ -1,5 +1,3 @@
-cordova.define("cordova-plugin-camera.camera", function(require, exports, module) {
-cordova.define("cordova-plugin-camera.camera", function(require, exports, module) {
 /*
  *
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -197,27 +195,15 @@ cameraExport.clearCacheImageFromDisk = function(successCallback, errorCallback) 
 
 cameraExport.clearImageByPath = function(successCallback, errorCallback, paths) {
     argscheck.checkArgs('fFO', 'Camera.clearImageByPath', arguments);
-    paths = paths || {};
-    var getValue = argscheck.getValue;
-    exec(successCallback, errorCallback, "Camera", "clearImageByPath", paths);
-}
-
-//
-cameraExport.clearImageByPath = function(successCallback, errorCallback, paths) {
-    argscheck.checkArgs('fFO', 'Camera.clearImageByPath', arguments);
     paths = paths || [];
     var getValue = argscheck.getValue;
     exec(successCallback, errorCallback, "Camera", "clearImageByPath", paths);
 }
 
-//清除所有离线图片
+//
 cameraExport.clearAllOfflinePicture = function(successCallback, errorCallback) {
     exec(successCallback, errorCallback, "Camera", "clearAllOfflinePicture", []);
 };
 
 
 module.exports = cameraExport;
-
-});
-
-});
