@@ -21,9 +21,9 @@ import java.io.IOException;
 /**
  * 自定义拍照的Acitivity
  */
-public class CameraActivity2 extends Activity implements CameraView.CameraListener {
+public class CameraActivity extends Activity implements CameraView.CameraListener {
 
-    private static final String TAG = "CameraActivity2";
+    private static final String TAG = "CameraActivity";
     public static final int REQUEST_PICTURE_OK = 0x99;
     public static final int REQUEST_PICTURE_FAIL = 0x98;
     private CameraView mCameraView;
@@ -33,7 +33,7 @@ public class CameraActivity2 extends Activity implements CameraView.CameraListen
     private int targetHeight;
 
     public static void startForResult(Activity activity, String path, int requestCode) {
-        Intent intent = new Intent(activity, CameraActivity2.class);
+        Intent intent = new Intent(activity, CameraActivity.class);
         intent.putExtra(MediaStore.EXTRA_OUTPUT, path);
         intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         activity.startActivityForResult(intent, requestCode);

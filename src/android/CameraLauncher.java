@@ -45,7 +45,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Handler;
 import android.provider.MediaStore;
 import android.support.v4.content.FileProvider;
 import android.util.Base64;
@@ -193,7 +192,6 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
             this.compressMultiple = args.getInt(13);
             this.cameraType = args.getInt(14);
             this.isSaveOfflinePicture = args.getInt(15);
-            LOG.i(LOG_TAG,"args:"+args.length());
             if(args.length()>15) {
                 this.isSaveOfflinePicture = args.getInt(15);
             }
@@ -225,7 +223,7 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
                 if(!PermissionHelper.hasPermission(this,  Manifest.permission.CAMERA)) {
                     PermissionHelper.requestPermission(this, REQUEST_CAMERA, Manifest.permission.CAMERA);
                 } else {
-                    Intent cameraIntent = new Intent(cordova.getActivity(),CameraActivity2.class);
+                    Intent cameraIntent = new Intent(cordova.getActivity(),CameraActivity.class);
                     cameraIntent.putExtra("fileName",this.getTempDirectoryPath()+"/"+this.fileName+".jpg");
                     cameraIntent.putExtra("quality",this.mQuality);
                     cameraIntent.putExtra("targetWidth",targetWidth);
@@ -302,11 +300,16 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
                 cachePath = Environment.getDataDirectory() + offlineImgPath;
             }
 
-            File files = new File(cachePath);
-            if(files.isDirectory()){
-                for (File f : files.listFiles()){
-                    f.delete();
+            try {
+                File files = new File(cachePath);
+                if (files.isDirectory()) {
+                    for (File f : files.listFiles()) {
+                        f.delete();
+                    }
                 }
+                callbackContext.success("success");
+            }catch (Exception e){
+                callbackContext.error(e.getLocalizedMessage());
             }
         }else if(action.equals("clearImageByPath")){
 
@@ -322,7 +325,7 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
                     }
                     callbackContext.success("success");
                 }catch (Exception e){
-
+                    callbackContext.error(e.getLocalizedMessage());
                 }
 
             }
@@ -1624,7 +1627,7 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
                 this.getImage(this.srcType, this.destType, this.encodingType);
                 break;
             case REQUEST_CAMERA:
-                Intent cameraIntent = new Intent(cordova.getActivity(),CameraActivity2.class);
+                Intent cameraIntent = new Intent(cordova.getActivity(),CameraActivity.class);
                 cameraIntent.putExtra("fileName",this.fileName+".jpg");
                 cameraIntent.putExtra("quality",this.mQuality);
                 cameraIntent.putExtra("targetWidth",targetWidth);
