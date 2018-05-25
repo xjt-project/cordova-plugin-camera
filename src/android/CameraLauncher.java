@@ -192,14 +192,11 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
             //图片水印相关参数
             this.compressMultiple = args.getInt(13);
             this.cameraType = args.getInt(14);
-<<<<<<< HEAD
             this.isSaveOfflinePicture = args.getInt(15);
-=======
             LOG.i(LOG_TAG,"args:"+args.length());
             if(args.length()>15) {
                 this.isSaveOfflinePicture = args.getInt(15);
             }
->>>>>>> bad5eafa5228332cdb0fe8eee608ca5ce4e91782
             String shadeTextStr = args.getString(12);
             if(shadeTextStr!=null && shadeTextStr.equalsIgnoreCase("null")==false){
                 this.shadeText = shadeTextStr.split("\\|");//必须加上转义
