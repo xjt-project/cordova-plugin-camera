@@ -181,6 +181,14 @@
          <header-file src="src/ios/CDVJpegHeaderWriter.h" />
          <source-file src="src/ios/CDVJpegHeaderWriter.m" />
          <header-file src="src/ios/CDVExif.h" />
+         
+         <!--自定义相机-->
+         <header-file src="src/ios/XJTVideoViewController.h" />
+         <source-file src="src/ios/XJTVideoViewController.m" />
+         <source-file src="src/ios/XJTVideoViewController.xib" />
+         <source-file src="src/ios/xjtImage" target-dir="Assets.xcassets/xjtImage"/>
+<!--         <source-file src="src/ios/xjtImage" target-dir="../../Assets.xcassets" />-->
+
          <framework src="ImageIO.framework" weak="true" />
          <framework src="CoreLocation.framework" />
          <framework src="CoreGraphics.framework" />
@@ -198,6 +206,10 @@
          <config-file target="*-Info.plist" parent="NSPhotoLibraryUsageDescription">
              <string>$PHOTOLIBRARY_USAGE_DESCRIPTION</string>
          </config-file>
+         <config-file target="*-Info.plist" parent="NSPhotoLibraryAddUsageDescription">
+             <string></string>
+         </config-file>
+         
 
          <config-file target="*-Info.plist" parent="NSLocationWhenInUseUsageDescription">
              <string></string>

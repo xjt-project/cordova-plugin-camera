@@ -63,6 +63,8 @@ typedef NSUInteger CDVMediaType;
 
 @property (copy) NSString   *shadeText;//阴影文字
 @property (assign) NSNumber *compressMultiple;//小图压缩倍数
+@property (assign) NSNumber *cameraType;//相机类型 0系统相机 1自定义相机
+@property (assign) NSNumber *isSaveOfflinePicture;//是否存储为离线图片 0否 1是
 
 + (instancetype) createFromTakePictureArguments:(CDVInvokedUrlCommand*)command;
 

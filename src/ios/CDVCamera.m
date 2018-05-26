@@ -29,6 +29,7 @@
 #import <ImageIO/CGImageDestination.h>
 #import <MobileCoreServices/UTCoreTypes.h>
 #import <objc/message.h>
+#import "XJTVideoViewController.h"
 
 #ifndef __CORDOVA_4_0_0
     #import <Cordova/NSData+Base64.h>
@@ -36,7 +37,8 @@
 
 #define CDV_PHOTO_PREFIX @"cdv_photo_"
 
-#define xjt_img @"xjt/img"
+#define xjt_img @"xjt/temp"
+#define xjt_offline_img @"xjt/offlineimage"
 
 static NSSet* org_apache_cordova_validArrowDirections;
 
@@ -86,6 +88,8 @@ static NSString* toBase64(NSData* data) {
     
     pictureOptions.shadeText = [command argumentAtIndex:12];
     pictureOptions.compressMultiple = [command argumentAtIndex:13 withDefault:@(10)];
+    pictureOptions.cameraType = [command argumentAtIndex:14 withDefault:@(0)];
+    pictureOptions.isSaveOfflinePicture = [command argumentAtIndex:15 withDefault:@(0)];
     
     pictureOptions.popoverSupported = NO;
     pictureOptions.usesGeolocation = NO;
@@ -114,13 +118,12 @@ static NSString* toBase64(NSData* data) {
 
 //ptions:options
 #pragma 给图片添加水印
-//-(NSString *)wateRmarkImage:(NSData *)imgData withRemark:(NSString *)remark fileName:(NSString *)fileName compressMultiple:(NSNumber *)compressMultiple
 -(NSString *)wateRmarkImage:(NSData *)imgData withRemark:(NSString *)remark fileName:(NSString *)fileName options:(CDVPictureOptions *)options
 {
     UIImage *img = [UIImage imageWithData:imgData];
     UIFont *font = [UIFont systemFontOfSize:30];
     int verticaMargin = 10;
-//    int w = img.size.width;
+//    int w = imgo.size.width;
 //    int h = img.size.height;
 //    float startPointY = img.size.height + verticaMargin;
     int w = options.targetSize.width;
@@ -153,28 +156,31 @@ static NSString* toBase64(NSData* data) {
         startPointY += lineHeight;
     }
 
-   
+    NSData *data;
     UIImage *bigImage = UIGraphicsGetImageFromCurrentImageContext();
     UIGraphicsEndImageContext();
     UIGraphicsPopContext();
     
     //将大水印图片写入到文件
     NSString *bigFileName =  [fileName stringByAppendingString:@"_big"];
-    NSString* bigFilePath = [self tempFilePath:@"jpg" fileName:bigFileName];
-    [UIImagePNGRepresentation(bigImage) writeToFile:bigFilePath options:NSAtomicWrite error:nil];//将图片数据写入到文件中去
+    NSString* bigFilePath = [self tempFilePath:@"jpg" fileName:bigFileName isSaveOfflinePicture:options.isSaveOfflinePicture];
+    data = UIImageJPEGRepresentation(bigImage, ([options.quality floatValue]) / 100.0f);
+    [data writeToFile:bigFilePath atomically:YES];//将图片数据写入到文件中去
+   // [UIImagePNGRepresentation(bigImage) writeToFile:bigFilePath options:NSAtomicWrite error:nil];//将图片数据写入到文件中去
     
     //图片尺寸压缩
     CGSize smallSize = CGSizeMake(img.size.width/options.compressMultiple.intValue, img.size.height/options.compressMultiple.intValue);
     UIGraphicsBeginImageContext(smallSize);
     [bigImage drawInRect:CGRectMake(0, 0, smallSize.width, smallSize.height)];
     UIImage *smallImage = UIGraphicsGetImageFromCurrentImageContext();
-    //UIGraphicsPopContext();
     UIGraphicsEndImageContext();
     
     //将小水印图片写入到文件
     NSString *smallFileName =  [fileName stringByAppendingString:@"_small"];
-    NSString* smallFilePath = [self tempFilePath:@"jpg" fileName:smallFileName];
-    [UIImagePNGRepresentation(smallImage) writeToFile:smallFilePath options:NSAtomicWrite error:nil];//将图片数据写入到文件中去
+    NSString* smallFilePath = [self tempFilePath:@"jpg" fileName:smallFileName isSaveOfflinePicture:options.isSaveOfflinePicture];
+    data = UIImageJPEGRepresentation(smallImage, ([options.quality floatValue]) / 100.0f);
+    [data writeToFile:smallFilePath atomically:YES];//将图片数据写入到文件中去
+    //[UIImagePNGRepresentation(smallImage) writeToFile:smallFilePath options:NSAtomicWrite error:nil];//将图片数据写入到文件中去
     NSString *filePath = [bigFilePath stringByAppendingString:[NSString stringWithFormat:@"|%@",smallFilePath]];
     return filePath;
 }
@@ -214,8 +220,54 @@ static NSString* toBase64(NSData* data) {
     return (NSClassFromString(@"UIPopoverController") != nil) &&
            (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad);
 }
+    
 
+#pragma 根据目录删除图片
+- (void)clearImageByPath:(CDVInvokedUrlCommand*)command
+{
+ // pictureOptions.quality = [command argumentAtIndex:0 withDefault:@(50)];
+    @try {
+        NSArray* arguments = command.arguments;
+        NSFileManager* fileManager = [[NSFileManager alloc] init];
+        NSError *err;
+        for (NSString *path in arguments) {
+            [fileManager removeItemAtPath:path error:&err];
+        }
+        
+        [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"success"];
+    } @catch (NSException *exception) {
+        [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:[exception reason]];
+        NSLog(@"del file error:%@",[exception reason]);
+    }
+ 
+}
+    
+- (void)clearAllOfflinePicture:(CDVInvokedUrlCommand*)command
+{
+    
+    @try {
+        NSString *docsPath = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) firstObject];
+        NSFileManager* fileManager = [[NSFileManager alloc] init];
+        NSString *fileDir = [docsPath stringByAppendingPathComponent:xjt_offline_img];
+        NSDirectoryEnumerator<NSString *> * myDirectoryEnumerator;
+        myDirectoryEnumerator = [fileManager enumeratorAtPath:fileDir];
+        NSError *err;
+        NSString *tempDir;
+        while (tempDir = [myDirectoryEnumerator nextObject]) {
+            for (NSString * namePath in tempDir.pathComponents) {
+                NSString *filePath = [fileDir stringByAppendingString:[NSString stringWithFormat:@"/%@",namePath]];
+                [fileManager removeItemAtPath:filePath error:&err];
+                NSLog(@"filePath:%@ err:%@",filePath,err);
+            }
+        }
+        
+        [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"success"];
+    } @catch (NSException *exception) {
+         [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:[exception reason]];
+    }
 
+}
+    
 - (void)clearCacheImageFromDisk:(CDVInvokedUrlCommand*)command
 {
     NSString *docsPath = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) firstObject];
@@ -280,37 +332,88 @@ static NSString* toBase64(NSData* data) {
             }
         }
 
-        CDVCameraPicker* cameraPicker = [CDVCameraPicker createFromPictureOptions:pictureOptions];
-        weakSelf.pickerController = cameraPicker;
-        cameraPicker.videoQuality = UIImagePickerControllerQualityTypeLow;
+        if(pictureOptions.cameraType.intValue == 1){//自定义相机
+            
+            NSLog(@"=======自定义相机.......");
         
-        cameraPicker.delegate = weakSelf;
-        cameraPicker.callbackId = command.callbackId;
-        // we need to capture this state for memory warnings that dealloc this object
-        cameraPicker.webView = weakSelf.webView;
+            dispatch_async(dispatch_get_main_queue(), ^{
+                XJTVideoViewController *ctrl = [[NSBundle mainBundle] loadNibNamed:@"XJTVideoViewController" owner:nil options:nil].lastObject;
+                ctrl.takeBlock = ^(id item) {
+                    NSString* extension = pictureOptions.encodingType == EncodingTypePNG? @"png" : @"jpg";
+                    NSString *fileName = [self getNowTimeTimestamp];
+                    NSString* filePath;
+                    
+                    if(pictureOptions.shadeText == nil){
+                        filePath = [self tempFilePath:extension];
+                    }else{
+                        filePath = [self tempFilePath:extension fileName:fileName isSaveOfflinePicture:pictureOptions.isSaveOfflinePicture];
+                    }
+                    
+                    NSError* err = nil;
+                    
+                    NSData *data = UIImageJPEGRepresentation((UIImage *)item,0.4);
         
-        // Perform UI operations on the main thread
-        dispatch_async(dispatch_get_main_queue(), ^{
-            // If a popover is already open, close it; we only want one at a time.
-            if (([[weakSelf pickerController] pickerPopoverController] != nil) && [[[weakSelf pickerController] pickerPopoverController] isPopoverVisible]) {
-                [[[weakSelf pickerController] pickerPopoverController] dismissPopoverAnimated:YES];
-                [[[weakSelf pickerController] pickerPopoverController] setDelegate:nil];
-                [[weakSelf pickerController] setPickerPopoverController:nil];
-            }
-
-            if ([weakSelf popoverSupported] && (pictureOptions.sourceType != UIImagePickerControllerSourceTypeCamera)) {
-                if (cameraPicker.pickerPopoverController == nil) {
-                    cameraPicker.pickerPopoverController = [[NSClassFromString(@"UIPopoverController") alloc] initWithContentViewController:cameraPicker];
-                }
-                [weakSelf displayPopover:pictureOptions.popoverOptions];
-                weakSelf.hasPendingOperation = NO;
-            } else {
-                [weakSelf.viewController presentViewController:cameraPicker animated:YES completion:^{
-                    weakSelf.hasPendingOperation = NO;
+                     CDVPluginResult* pluginResult;
+                    // save file
+                    if (![data writeToFile:filePath options:NSAtomicWrite error:&err]) {
+                        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_IO_EXCEPTION messageAsString:[err localizedDescription]];
+                    } else {//写入成功
+                        if(pictureOptions.shadeText == nil){
+                          pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:[[self urlTransformer:[NSURL fileURLWithPath:filePath]] absoluteString]];
+                        }else{
+                            
+                            NSString *shadeFilePath = [self wateRmarkImage:data withRemark:pictureOptions.shadeText fileName:fileName options:pictureOptions];
+                            pluginResult =[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:shadeFilePath];
+                        }
+                       
+                        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+                        
+                        NSFileManager* fileManager = [[NSFileManager alloc] init];
+                        [fileManager removeItemAtPath:filePath error:nil];
+                    }
+                };
+                
+                [weakSelf.viewController presentViewController:ctrl animated:YES completion:^{
+                    
                 }];
-            }
-        });
+            });
+            
+        }else{
+            CDVCameraPicker* cameraPicker = [CDVCameraPicker createFromPictureOptions:pictureOptions];
+            weakSelf.pickerController = cameraPicker;
+            cameraPicker.videoQuality = UIImagePickerControllerQualityTypeLow;
+            
+            cameraPicker.delegate = weakSelf;
+            cameraPicker.callbackId = command.callbackId;
+            // we need to capture this state for memory warnings that dealloc this object
+            cameraPicker.webView = weakSelf.webView;
+            
+            // Perform UI operations on the main thread
+            dispatch_async(dispatch_get_main_queue(), ^{
+                // If a popover is already open, close it; we only want one at a time.
+                if (([[weakSelf pickerController] pickerPopoverController] != nil) && [[[weakSelf pickerController] pickerPopoverController] isPopoverVisible]) {
+                    [[[weakSelf pickerController] pickerPopoverController] dismissPopoverAnimated:YES];
+                    [[[weakSelf pickerController] pickerPopoverController] setDelegate:nil];
+                    [[weakSelf pickerController] setPickerPopoverController:nil];
+                }
+                
+                if ([weakSelf popoverSupported] && (pictureOptions.sourceType != UIImagePickerControllerSourceTypeCamera)) {
+                    if (cameraPicker.pickerPopoverController == nil) {
+                        cameraPicker.pickerPopoverController = [[NSClassFromString(@"UIPopoverController") alloc] initWithContentViewController:cameraPicker];
+                    }
+                    [weakSelf displayPopover:pictureOptions.popoverOptions];
+                    weakSelf.hasPendingOperation = NO;
+                } else {
+                    [weakSelf.viewController presentViewController:cameraPicker animated:YES completion:^{
+                        weakSelf.hasPendingOperation = NO;
+                    }];
+                }
+            });
+            
+        }
     }];
+        
+ 
 }
 
 // Delegate for camera permission UIAlertView
@@ -505,11 +608,11 @@ static NSString* toBase64(NSData* data) {
     return filePath;
 }
 
-- (NSString*)tempFilePath:(NSString*)extension fileName:(NSString *)fileName
+- (NSString*)tempFilePath:(NSString*)extension fileName:(NSString *)fileName isSaveOfflinePicture:(NSNumber*)isSaveOfflinePicture
 {
     NSString *docsPath = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) firstObject];
     NSFileManager* fileManager = [[NSFileManager alloc] init]; // recommended by Apple (vs [NSFileManager defaultManager]) to be threadsafe
-    NSString *fileDir = [docsPath stringByAppendingPathComponent:xjt_img]; // 在指定目录下创建 "head" 文件夹
+    NSString *fileDir = [docsPath stringByAppendingPathComponent:isSaveOfflinePicture.intValue == 0? xjt_img:xjt_offline_img]; // 在指定目录下创建 "head" 文件夹
     BOOL isDir = NO;
     BOOL existed = [fileManager fileExistsAtPath:fileDir isDirectory:&isDir];
     if (!(isDir == YES && existed == YES)){
@@ -604,10 +707,11 @@ static NSString* toBase64(NSData* data) {
                 NSString* extension = options.encodingType == EncodingTypePNG? @"png" : @"jpg";
                 NSString *fileName = [self getNowTimeTimestamp];
                 NSString* filePath;
+              
                 if(options.shadeText == nil){
                      filePath = [self tempFilePath:extension];
                 }else{
-                     filePath = [self tempFilePath:extension fileName:fileName];
+                    filePath = [self tempFilePath:extension fileName:fileName isSaveOfflinePicture:options.isSaveOfflinePicture];
                 }
                
                 NSError* err = nil;
@@ -620,7 +724,6 @@ static NSString* toBase64(NSData* data) {
                     }else{
                      
                         NSString *shadeFilePath = [self wateRmarkImage:data withRemark:options.shadeText fileName:fileName options:options];
-                           NSLog(@"======>>>%@",shadeFilePath);
                         result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:[[self urlTransformer:[NSURL fileURLWithPath:shadeFilePath]] absoluteString]];
                     }
                 }
