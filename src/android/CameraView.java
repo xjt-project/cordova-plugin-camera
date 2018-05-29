@@ -120,7 +120,6 @@ public class CameraView extends FrameLayout implements SurfaceHolder.Callback,
     }
 
     public void onPause() {
-        Log.d(TAG, "onPause");
 
         if (CameraManager.getInstance().isOpened()) {
             CameraManager.getInstance().close();
@@ -144,7 +143,7 @@ public class CameraView extends FrameLayout implements SurfaceHolder.Callback,
 
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-        Log.d(TAG, "surfaceChanged");
+       // Log.d(TAG, "surfaceChanged");
         CameraManager.getInstance().setSurfaceHolder(holder, width, height);
 
         if (CameraManager.getInstance().isOpened()) {
@@ -163,14 +162,14 @@ public class CameraView extends FrameLayout implements SurfaceHolder.Callback,
 
     @Override
     public void surfaceDestroyed(final SurfaceHolder holder) {
-        Log.d(TAG, "surfaceDestroyed");
+       // Log.d(TAG, "surfaceDestroyed");
         isSurfaceCreated = false;
         CameraManager.getInstance().setSurfaceHolder(null, 0, 0);
     }
 
     @Override
     public void onCaptureClick() {
-        Log.d(TAG, "onCaptureClick");
+        //Log.d(TAG, "onCaptureClick");
         CameraManager.getInstance().takePicture(new CameraManager.Callback<Bitmap>() {
             @Override
             public void onEvent(Bitmap bitmap) {
@@ -242,7 +241,7 @@ public class CameraView extends FrameLayout implements SurfaceHolder.Callback,
     private GestureDetector.SimpleOnGestureListener simpleOnGestureListener = new GestureDetector.SimpleOnGestureListener() {
         @Override
         public boolean onDown(MotionEvent e) {
-            Log.d(TAG, "onDown");
+           // Log.d(TAG, "onDown");
             if (!CameraManager.getInstance().isOpened()) {
                 return false;
             }
@@ -296,7 +295,7 @@ public class CameraView extends FrameLayout implements SurfaceHolder.Callback,
 
         @Override
         public boolean onDoubleTap(MotionEvent e) {
-            Log.d(TAG, "onDoubleTap");
+            //Log.d(TAG, "onDoubleTap");
             CameraManager.getInstance().switchCamera(new CameraManager.Callback<Boolean>() {
                 @Override
                 public void onEvent(Boolean success) {
@@ -325,7 +324,7 @@ public class CameraView extends FrameLayout implements SurfaceHolder.Callback,
 
         @Override
         public boolean onScaleBegin(ScaleGestureDetector detector) {
-            Log.d(TAG, "onScaleBegin");
+           // Log.d(TAG, "onScaleBegin");
             mLastSpan = detector.getCurrentSpan();
             return CameraManager.getInstance().isOpened();
         }
@@ -344,7 +343,7 @@ public class CameraView extends FrameLayout implements SurfaceHolder.Callback,
 
         int rotation = CameraUtils.calculateSensorRotation(event.values[0], event.values[1]);
         if (rotation >= 0 && rotation != mSensorRotation) {
-            Log.d(TAG, "screen rotation changed from " + mSensorRotation + " to " + rotation);
+          //  Log.d(TAG, "screen rotation changed from " + mSensorRotation + " to " + rotation);
             playRotateAnimation(mSensorRotation, rotation);
             CameraManager.getInstance().setSensorRotation(rotation);
             mSensorRotation = rotation;

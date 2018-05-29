@@ -3,9 +3,12 @@ package org.apache.cordova.camera;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Rect;
+import android.hardware.Camera;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -45,6 +48,9 @@ public class CameraActivity extends Activity implements CameraView.CameraListene
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
+        //只支持竖屏
+        //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+
         mCameraView = new CameraView(this);
         setContentView(mCameraView);
 
@@ -55,6 +61,7 @@ public class CameraActivity extends Activity implements CameraView.CameraListene
         mCameraView.setCameraListener(this);
 
     }
+
 
     @Override
     public void onCapture(Bitmap bitmap) {

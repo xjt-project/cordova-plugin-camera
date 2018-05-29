@@ -79,7 +79,8 @@
                   android:name="android.support.FILE_PROVIDER_PATHS"
                   android:resource="@xml/provider_paths"/>
           </provider>
-          <activity android:name="org.apache.cordova.camera.CameraActivity" 
+          <activity android:name="org.apache.cordova.camera.CameraActivity"
+              android:configChanges="orientation|keyboardHidden"
           	  android:theme="@android:style/Theme.Holo.NoActionBar.Fullscreen" />
           	  
      

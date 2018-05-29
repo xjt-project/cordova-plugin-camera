@@ -742,11 +742,11 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
                         CompressFormat.JPEG :
                         CompressFormat.PNG;
 
-                LOG.d(LOG_TAG,"压缩前分配的内存:"+bitmap.getAllocationByteCount());
+//                LOG.d(LOG_TAG,"压缩前分配的内存:"+bitmap.getAllocationByteCount());
                 bitmap.compress(compressFormat, this.mQuality, os);//将bitmap压缩并写到要返回的文件中去
-                LOG.d(LOG_TAG,"压缩后分配的内存:"+bitmap.getAllocationByteCount());
-                LOG.d(LOG_TAG,"所有字节数据:"+bitmap.getByteCount()+"，" +
-                        "rowCount"+bitmap.getRowBytes()+",colCount:"+bitmap.getHeight());
+//                LOG.d(LOG_TAG,"压缩后分配的内存:"+bitmap.getAllocationByteCount());
+//                LOG.d(LOG_TAG,"所有字节数据:"+bitmap.getByteCount()+"，" +
+//                        "rowCount"+bitmap.getRowBytes()+",colCount:"+bitmap.getHeight());
                 os.close();
 
                 // Restore exif data to file
@@ -1786,9 +1786,9 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
             int lineNumbers = shadeText.length;
             int lineheight;  //水印文字行高
             int fontSize = 30;//默认字体大小
-//            WindowManager wm1 = this.cordova.getActivity().getWindowManager();
-//            int screenWidth = wm1.getDefaultDisplay().getWidth();
-//            fontSize = targetWidth/screenWidth;//字体需要根据屏幕的大小计算一下；否则如果图片宽度给的太小，字体会显示的特别大
+
+            //LOG.i(LOG_TAG,"bitmap size:"+bitmap.getWidth()+"====>"+bitmap.getHeight());
+
             Paint paint = new Paint();
             paint.setColor(Color.parseColor("#FFCE43"));
             paint.setTextSize(calculateFontSize(fontSize));
@@ -1799,6 +1799,7 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
             lineheight = rect.height()+margin*2;//测试出来的文字高度
 
             newBitmap = Bitmap.createBitmap(bitmap.getWidth(),bitmap.getHeight()+lineNumbers*lineheight+margin/2, Bitmap.Config.ARGB_8888);
+
             Canvas canvas = new Canvas(newBitmap);
             canvas.drawBitmap( bitmap, 0, 0, null );//在 0，0坐标开始画入src
 
@@ -1869,32 +1870,6 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
                 return info.processName;//返回包名
         }
         return "";
-    }
-
-    private void killBackGroundProcesses(){
-        try {
-            ActivityManager activityManager = (ActivityManager) cordova.getActivity().getSystemService(Context.ACTIVITY_SERVICE);
-            // 得到所有进程
-            List<ActivityManager.RunningAppProcessInfo> runningAppProcesses = activityManager.getRunningAppProcesses();
-            if(runningAppProcesses!=null && runningAppProcesses.size()>0){
-                ActivityManager.RunningAppProcessInfo process = null;
-                String currentPkg = getAppProcessName();
-                for (int i=0;i<runningAppProcesses.size();i++){
-                    process = runningAppProcesses.get(i);
-                    for (String pkgName : process.pkgList) {
-                        if(pkgName.equals(currentPkg) == false){
-                            Log.i(LOG_TAG,"尝试杀死进程:" + pkgName);
-                            // activityManager.killBackgroundProcesses(pkgName);
-                        }
-
-                    }
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        //List<ActivityManager.RunningAppProcessInfo> processes = ProcessManager.getRunningAppProcessInfo(cordova.getActivity());
     }
 
 

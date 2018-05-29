@@ -2,6 +2,7 @@ package org.apache.cordova.camera;
 
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
@@ -16,6 +17,8 @@ import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.WindowManager;
+
+import org.apache.cordova.LOG;
 
 /**
  * 相机管理类，单例
@@ -65,6 +68,10 @@ public class CameraManager {
     public void init(Context context) {
         mContext = context.getApplicationContext();
         mCameraId = -1;
+    }
+
+    public Camera getmCamera() {
+        return mCamera;
     }
 
     public void setSurfaceHolder(SurfaceHolder holder, int width, int height) {
@@ -218,6 +225,19 @@ public class CameraManager {
         mSensorRotation = rotation;
     }
 
+    public Matrix getMatrix(){
+        Matrix matrix = new Matrix();
+        int rotation = getDisplayOrientation() + mSensorRotation;
+        if (mCameraId == CAMERA_ID_BACK) {
+            matrix.setRotate(rotation);
+        } else {
+            rotation = (360 - rotation) % 360;
+            matrix.setRotate(rotation);
+            matrix.postScale(-1, 1);
+        }
+        return matrix;
+    }
+
     public void takePicture(final Callback<Bitmap> callback) {
 
         checkInitialize();
@@ -234,6 +254,7 @@ public class CameraManager {
                 parameters.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);//开启闪光灯
                 mCamera.setParameters(parameters);
 
+                //从摄像头中获取图片
                 mCamera.takePicture(null, null, new Camera.PictureCallback() {
                     @Override
                     public void onPictureTaken(byte[] data, Camera camera) {
@@ -246,20 +267,41 @@ public class CameraManager {
 
                         final Bitmap result;
                         if (data != null && data.length > 0) {
-                            Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
-                            Matrix matrix = new Matrix();
-                            int rotation = getDisplayOrientation() + mSensorRotation;
-                            if (mCameraId == CAMERA_ID_BACK) {
-                                matrix.setRotate(rotation);
-                            } else {
-                                rotation = (360 - rotation) % 360;
-                                matrix.setRotate(rotation);
-                                matrix.postScale(-1, 1);
+                            Configuration mConfiguration = mContext.getResources().getConfiguration(); //获取设置的配置信息
+                            int ori = mConfiguration.orientation; //获取屏幕方向
+                            if (ori == mConfiguration.ORIENTATION_LANDSCAPE) {//竖屏
+                                Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
+                                Matrix matrix = new Matrix();
+                                int rotation = getDisplayOrientation() + mSensorRotation;
+                                if (mCameraId == CAMERA_ID_BACK) {
+                                    matrix.setRotate(rotation);
+                                } else {
+                                    rotation = (360 - rotation) % 360;
+                                    matrix.setRotate(rotation);
+                                    matrix.postScale(-1, -1);
+                                }
+
+                                result = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+
+                            } else {//横屏
+                                Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
+                                Matrix matrix = new Matrix();
+                                int rotation = getDisplayOrientation() + mSensorRotation;
+                                if (mCameraId == CAMERA_ID_BACK) {
+                                    matrix.postRotate(rotation+90);
+                                } else {
+                                    rotation = (360 - rotation) % 360;
+                                    matrix.postRotate(rotation+90);
+                                    matrix.postScale(-1, 1);
+                                }
+                               result = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+
                             }
-                            result = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+
                         } else {
                             result = null;
                         }
+
 
                         mUiHandler.post(new Runnable() {
                             @Override
@@ -302,12 +344,9 @@ public class CameraManager {
         if (mState != State.STATE_IDLE) {
             setState(State.STATE_IDLE);
         }
-
-        Log.d(TAG, "closeImmediate........");
     }
 
     private void setState(State state) {
-        Log.d(TAG, "change state from " + mState + " to " + state);
         mState = state;
     }
 
