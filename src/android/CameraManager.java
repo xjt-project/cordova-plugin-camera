@@ -283,21 +283,21 @@ public class CameraManager {
                                 } else {
                                     rotation = (360 - rotation) % 360;
                                     matrix.setRotate(rotation);
-                                    matrix.postScale(-1, -1);
+                                    matrix.postScale(-1, 1);//翻转，否则左右会反
                                 }
 
                                 result = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
-                               // LOG.i(TAG,"竖屏......"+rotation);
+                                //LOG.i(TAG,"竖屏......"+rotation);
                             } else {//横屏
 
-                               // LOG.i(TAG,"横屏......"+rotation);
+                             //   LOG.i(TAG,"横屏......"+rotation);
                                 Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
                                 Matrix matrix = new Matrix();
                                 if (mCameraId == CAMERA_ID_BACK) {
                                     matrix.postRotate(rotation+90);
                                 } else {
                                     rotation = (360 - rotation) % 360;
-                                    matrix.postRotate(rotation+90);
+                                    matrix.postRotate(rotation-90);
                                     matrix.postScale(-1, 1);
                                 }
                                 result = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
