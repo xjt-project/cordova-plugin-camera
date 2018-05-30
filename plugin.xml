@@ -187,9 +187,7 @@
          <header-file src="src/ios/XJTVideoViewController.h" />
          <source-file src="src/ios/XJTVideoViewController.m" />
          <source-file src="src/ios/XJTVideoViewController.xib" />
-         <source-file src="src/ios/xjtImage" target-dir="Assets.xcassets/xjtImage"/>
-<!--         <source-file src="src/ios/xjtImage" target-dir="../../Assets.xcassets" />-->
-
+         <source-file src="src/ios/xjtImage" target-dir="../../Images.xcassets/xjtCamera" /><!--把图片资源复制到对应地方-->
          <framework src="ImageIO.framework" weak="true" />
          <framework src="CoreLocation.framework" />
          <framework src="CoreGraphics.framework" />
