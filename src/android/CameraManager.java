@@ -20,6 +20,8 @@ import android.view.WindowManager;
 
 import org.apache.cordova.LOG;
 
+import java.lang.reflect.Array;
+
 /**
  * 相机管理类，单例
  */
@@ -265,11 +267,12 @@ public class CameraManager {
 
                         closeImmediate();
 
+
                         final Bitmap result;
                         if (data != null && data.length > 0) {
                             Configuration mConfiguration = mContext.getResources().getConfiguration(); //获取设置的配置信息
                             int ori = mConfiguration.orientation; //获取屏幕方向
-                            if (ori == mConfiguration.ORIENTATION_LANDSCAPE) {//竖屏
+                            if (ori == Configuration.ORIENTATION_LANDSCAPE) {//竖屏
                                 Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
                                 Matrix matrix = new Matrix();
                                 int rotation = getDisplayOrientation() + mSensorRotation;
@@ -294,9 +297,22 @@ public class CameraManager {
                                     matrix.postRotate(rotation+90);
                                     matrix.postScale(-1, 1);
                                 }
-                               result = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
-
+                                result = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
                             }
+
+//                            Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
+//                            Matrix matrix = new Matrix();
+//                            int rotation = getDisplayOrientation() + mSensorRotation;
+//                            if (mCameraId == CAMERA_ID_BACK) {
+//                                matrix.setRotate(rotation);
+//                            } else {
+//                                rotation = (360 - rotation) % 360;
+//                                matrix.setRotate(rotation);
+//                                matrix.postScale(-1, -1);
+//                            }
+//
+//                            result = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+
 
                         } else {
                             result = null;

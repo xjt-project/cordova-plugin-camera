@@ -741,12 +741,12 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
                 CompressFormat compressFormat = encodingType == JPEG ?
                         CompressFormat.JPEG :
                         CompressFormat.PNG;
+                if(shadeText!=null && shadeText.length>0){
+                    bitmap.compress(compressFormat, 100, os);//要加水印的话，加完水印再压缩
+                }else{
+                    bitmap.compress(compressFormat, this.mQuality, os);//将bitmap压缩并写到要返回的文件中去
+                }
 
-//                LOG.d(LOG_TAG,"压缩前分配的内存:"+bitmap.getAllocationByteCount());
-                bitmap.compress(compressFormat, this.mQuality, os);//将bitmap压缩并写到要返回的文件中去
-//                LOG.d(LOG_TAG,"压缩后分配的内存:"+bitmap.getAllocationByteCount());
-//                LOG.d(LOG_TAG,"所有字节数据:"+bitmap.getByteCount()+"，" +
-//                        "rowCount"+bitmap.getRowBytes()+",colCount:"+bitmap.getHeight());
                 os.close();
 
                 // Restore exif data to file
@@ -1764,7 +1764,7 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
         try {
             file.createNewFile();
             FileOutputStream fos = new FileOutputStream(file);
-            bitmap.compress(CompressFormat.JPEG, 100, fos);
+            bitmap.compress(CompressFormat.JPEG, this.mQuality, fos);
             fos.flush();
             fos.close();
         } catch (IOException e) {

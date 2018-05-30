@@ -49,7 +49,7 @@ public class CameraActivity extends Activity implements CameraView.CameraListene
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         //只支持竖屏
-        //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         mCameraView = new CameraView(this);
         setContentView(mCameraView);
@@ -76,14 +76,16 @@ public class CameraActivity extends Activity implements CameraView.CameraListene
 
            // Display display = getWindowManager().getDefaultDisplay();
             //不需要压缩宽高
-            if(bitmap.getWidth() == targetWidth && bitmap.getHeight() == targetHeight){
-                FileOutputStream out = new FileOutputStream(file);
-                bitmap.compress(Bitmap.CompressFormat.JPEG, this.quality, out);
-                out.flush();
-                out.close();
-            }else{//需要压缩
-                sizeCompress(bitmap,file);
-            }
+//            if(bitmap.getWidth() == targetWidth && bitmap.getHeight() == targetHeight){
+//                FileOutputStream out = new FileOutputStream(file);
+//                bitmap.compress(Bitmap.CompressFormat.JPEG, this.quality, out);//不要压缩，等加完水印后再压缩
+//                out.flush();
+//                out.close();
+//            }else{//需要压缩
+//                sizeCompress(bitmap,file);
+//            }
+
+            sizeCompress(bitmap,file);
 
             setResult(REQUEST_PICTURE_OK);
         } catch (Exception e) {
