@@ -8,12 +8,14 @@ import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.graphics.Point;
 import android.hardware.Camera;
+import android.hardware.SensorManager;
 import android.hardware.camera2.CaptureRequest;
 import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.util.Log;
+import android.view.OrientationEventListener;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.WindowManager;
@@ -51,6 +53,8 @@ public class CameraManager {
     private State mState = State.STATE_IDLE;
     private int mSensorRotation;
 
+
+
     public static CameraManager getInstance() {
         return SingletonHolder.instance;
     }
@@ -65,6 +69,7 @@ public class CameraManager {
         handlerThread.start();
         mThreadHandler = new Handler(handlerThread.getLooper());
         findCameras();
+
     }
 
     public void init(Context context) {
@@ -72,9 +77,6 @@ public class CameraManager {
         mCameraId = -1;
     }
 
-    public Camera getmCamera() {
-        return mCamera;
-    }
 
     public void setSurfaceHolder(SurfaceHolder holder, int width, int height) {
         mSurfaceHolder = holder;
@@ -270,12 +272,12 @@ public class CameraManager {
 
                         final Bitmap result;
                         if (data != null && data.length > 0) {
-                            Configuration mConfiguration = mContext.getResources().getConfiguration(); //获取设置的配置信息
-                            int ori = mConfiguration.orientation; //获取屏幕方向
-                            if (ori == Configuration.ORIENTATION_LANDSCAPE) {//竖屏
+
+                            int rotation = getDisplayOrientation() + mSensorRotation;
+                            if (rotation == 90) {//竖屏
                                 Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
                                 Matrix matrix = new Matrix();
-                                int rotation = getDisplayOrientation() + mSensorRotation;
+
                                 if (mCameraId == CAMERA_ID_BACK) {
                                     matrix.setRotate(rotation);
                                 } else {
@@ -285,11 +287,12 @@ public class CameraManager {
                                 }
 
                                 result = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
-
+                               // LOG.i(TAG,"竖屏......"+rotation);
                             } else {//横屏
+
+                               // LOG.i(TAG,"横屏......"+rotation);
                                 Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
                                 Matrix matrix = new Matrix();
-                                int rotation = getDisplayOrientation() + mSensorRotation;
                                 if (mCameraId == CAMERA_ID_BACK) {
                                     matrix.postRotate(rotation+90);
                                 } else {
