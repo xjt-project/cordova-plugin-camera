@@ -14,7 +14,7 @@ camera插件iOS、Android实现方式进行了扩展，对官方的扩展包括�
 
 1. 支持水印图片长期在磁盘存储（可以用离线巡检） 
    
-**提示：修改后的插件完全兼容官方的camera插件**
+提示：修改后的插件完全兼容官方的camera插件
 
 ##### 安装方法
 	
@@ -72,10 +72,3 @@ camera插件iOS、Android实现方式进行了扩展，对官方的扩展包括�
         
 	````
 
-### iOS注意点或可能遇到的问题
-
-* iOS真机运行提示错误：This app has crashed because it attempted to access privacy-sensitive data without a usage description.  The app's Info.plist must contain an NSCameraUsageDescription key with a string value explaining to the user how the app uses this data.
-
-	````
-	在xcode里面打开 ‘消检通-Info.plist’ 文件，在里面添加NSCameraUsageDescription即可
-	````
