@@ -105,6 +105,7 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
     public static final int REQUEST_PICTURE_OK = 0x99;
     public static final int REQUEST_PICTURE_FAIL = 0x98;
     public static final int REQUEST_CAMERA = 0x97;
+    public static final int REQUEST_WRITE_FILE = 0x96;
 
     private static final String LOG_TAG = "CameraLauncher";
 
@@ -220,15 +221,24 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
 
             if(this.cameraType == 1 && this.srcType == CAMERA){//调用自定义相机
 
-                if(!PermissionHelper.hasPermission(this,  Manifest.permission.CAMERA)) {
-                    PermissionHelper.requestPermission(this, REQUEST_CAMERA, Manifest.permission.CAMERA);
-                } else {
+                boolean writeFilePermisson = PermissionHelper.hasPermission(this,Manifest.permission.WRITE_EXTERNAL_STORAGE);
+                boolean cameraPermisson = PermissionHelper.hasPermission(this,Manifest.permission.CAMERA);
+
+                //同时具有拍照、存储权限
+                if(writeFilePermisson && cameraPermisson){
                     Intent cameraIntent = new Intent(cordova.getActivity(),CameraActivity.class);
                     cameraIntent.putExtra("fileName",this.getTempDirectoryPath()+"/"+this.fileName+".jpg");
                     cameraIntent.putExtra("quality",this.mQuality);
                     cameraIntent.putExtra("targetWidth",targetWidth);
                     cameraIntent.putExtra("targetHeight",targetHeight);
                     this.cordova.startActivityForResult((CordovaPlugin) this, cameraIntent, REQUEST_PICTURE_OK);
+                }else if(!writeFilePermisson && cameraPermisson){
+                    PermissionHelper.requestPermission(this, REQUEST_WRITE_FILE, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+                }else if(writeFilePermisson && !cameraPermisson){
+                    PermissionHelper.requestPermission(this, REQUEST_CAMERA, Manifest.permission.CAMERA);
+                }else if(!writeFilePermisson && !cameraPermisson){
+                    PermissionHelper.requestPermission(this, REQUEST_CAMERA, Manifest.permission.CAMERA);
+                    PermissionHelper.requestPermission(this, REQUEST_WRITE_FILE, Manifest.permission.WRITE_EXTERNAL_STORAGE);
                 }
 
             }else{
@@ -1626,14 +1636,38 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
             case SAVE_TO_ALBUM_SEC:
                 this.getImage(this.srcType, this.destType, this.encodingType);
                 break;
-            case REQUEST_CAMERA:
-                Intent cameraIntent = new Intent(cordova.getActivity(),CameraActivity.class);
-                cameraIntent.putExtra("fileName",this.fileName+".jpg");
-                cameraIntent.putExtra("quality",this.mQuality);
-                cameraIntent.putExtra("targetWidth",targetWidth);
-                cameraIntent.putExtra("targetHeight",targetHeight);
-                this.cordova.startActivityForResult((CordovaPlugin) this, cameraIntent, REQUEST_PICTURE_OK);
+            case REQUEST_CAMERA: {
+                boolean cameraPermisson = PermissionHelper.hasPermission(this,Manifest.permission.CAMERA);
+                boolean writeFilePermisson = PermissionHelper.hasPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+                if(cameraPermisson && writeFilePermisson){
+                    Intent cameraIntent = new Intent(cordova.getActivity(), CameraActivity.class);
+                    cameraIntent.putExtra("fileName", this.getTempDirectoryPath() + "/" + this.fileName + ".jpg");
+                    cameraIntent.putExtra("quality", this.mQuality);
+                    cameraIntent.putExtra("targetWidth", targetWidth);
+                    cameraIntent.putExtra("targetHeight", targetHeight);
+                    this.cordova.startActivityForResult((CordovaPlugin) this, cameraIntent, REQUEST_PICTURE_OK);
+                }
+
+                if(!writeFilePermisson)
+                    PermissionHelper.requestPermission(this, REQUEST_WRITE_FILE, Manifest.permission.WRITE_EXTERNAL_STORAGE);
                 break;
+            }
+            case REQUEST_WRITE_FILE:{
+                boolean cameraPermisson = PermissionHelper.hasPermission(this,Manifest.permission.CAMERA);
+                boolean writeFilePermisson = PermissionHelper.hasPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+                if(cameraPermisson && writeFilePermisson){
+                    Intent cameraIntent = new Intent(cordova.getActivity(),CameraActivity.class);
+                    cameraIntent.putExtra("fileName",this.getTempDirectoryPath()+"/"+this.fileName+".jpg");
+                    cameraIntent.putExtra("quality",this.mQuality);
+                    cameraIntent.putExtra("targetWidth",targetWidth);
+                    cameraIntent.putExtra("targetHeight",targetHeight);
+                    this.cordova.startActivityForResult((CordovaPlugin) this, cameraIntent, REQUEST_PICTURE_OK);
+                }
+                if(!cameraPermisson)
+                    PermissionHelper.requestPermission(this, REQUEST_CAMERA, Manifest.permission.CAMERA);
+
+                break;
+            }
         }
     }
 
@@ -1832,10 +1866,10 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
             fontsize = (int)(fontsize/(mScreenWidth/(targetWidth*1.0)));
         }
 
+//        Log.i(LOG_TAG,mScreenWidth+":"+mScreenHeight);
+//        Log.i(LOG_TAG,targetWidth+":"+targetHeight);
 
-       // Log.i(LOG_TAG,mScreenWidth+":"+mScreenHeight);
-
-        //以分辨率为720:1184准，计算宽高比值  720:1184   720*1280 1080*1920
+        //以分辨率为720:1184准，计算宽高比值  720:1184   720*1280 1080*1920 1080*1812
         float ratioWidth = (float) mScreenWidth / 1080;
         float ratioHeight = (float) mScreenHeight / 1920;
        // float ratioMetrics = Math.min(ratioWidth, ratioHeight);
