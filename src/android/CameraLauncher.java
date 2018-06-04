@@ -160,8 +160,8 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
         this.applicationId = (String) BuildHelper.getBuildConfigValue(cordova.getActivity(), "APPLICATION_ID");
         this.applicationId = preferences.getString("applicationId", this.applicationId);
 
-        LOG.i(LOG_TAG,"action:"+action);
-        LOG.i(LOG_TAG,"args:"+args);
+//        LOG.i(LOG_TAG,"action:"+action);
+//        LOG.i(LOG_TAG,"args:"+args);
         if (action.equals("takePicture")) {
 
 
@@ -1780,18 +1780,17 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
         Bitmap newBitmap = null;
         try {
 
+          //  Log.i(LOG_TAG,"bitmap:"+bitmap.getWidth()+","+bitmap.getHeight());
             int startY ;  //水印开始绘制的位置
-            int startX = 10;
-            int margin = 8;
+            int startX = calculateSize(10,bitmap.getWidth(),bitmap.getHeight());
+            int margin = calculateSize(8,bitmap.getWidth(),bitmap.getHeight());
             int lineNumbers = shadeText.length;
             int lineheight;  //水印文字行高
             int fontSize = 30;//默认字体大小
 
-            //LOG.i(LOG_TAG,"bitmap size:"+bitmap.getWidth()+"====>"+bitmap.getHeight());
-
             Paint paint = new Paint();
             paint.setColor(Color.parseColor("#FFCE43"));
-            paint.setTextSize(calculateFontSize(fontSize));
+            paint.setTextSize(calculateSize(fontSize,bitmap.getWidth(),bitmap.getHeight()));
             Typeface font = Typeface.create("Microsoft YaHei",Typeface.BOLD);
             paint.setTypeface(font);
             Rect rect = new Rect();
@@ -1803,7 +1802,7 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
             Canvas canvas = new Canvas(newBitmap);
             canvas.drawBitmap( bitmap, 0, 0, null );//在 0，0坐标开始画入src
 
-            startY = bitmap.getHeight() + 40;
+            startY = bitmap.getHeight() + calculateSize(40,bitmap.getWidth(),bitmap.getHeight());
             //第一行文字
             for(int i=0;i<lineNumbers;i++){
                 paint.measureText(this.shadeText[i]);
@@ -1820,19 +1819,27 @@ public class CameraLauncher extends CordovaPlugin implements MediaScannerConnect
 
 
     /**
-     * 根据屏幕计算字体大小
+     * 根据屏幕计算大小
      * @param fontsize
      * @return
      */
-    private int calculateFontSize(int fontsize){
+    private int calculateSize(int fontsize,int imgWidth,int imgHeight){
         DisplayMetrics dm = cordova.getActivity().getResources().getDisplayMetrics();
         int mScreenWidth = dm.widthPixels;
         int mScreenHeight = dm.heightPixels;
 
-        //以分辨率为720*1080准，计算宽高比值
-        float ratioWidth = (float) mScreenWidth / 720;
-        float ratioHeight = (float) mScreenHeight / 1080;
-        float ratioMetrics = Math.min(ratioWidth, ratioHeight);
+        if(mScreenWidth/(targetWidth*1.0) > 1){//高分辨率，需要重新计算
+            fontsize = (int)(fontsize/(mScreenWidth/(targetWidth*1.0)));
+        }
+
+
+       // Log.i(LOG_TAG,mScreenWidth+":"+mScreenHeight);
+
+        //以分辨率为720:1184准，计算宽高比值  720:1184   720*1280 1080*1920
+        float ratioWidth = (float) mScreenWidth / 1080;
+        float ratioHeight = (float) mScreenHeight / 1920;
+       // float ratioMetrics = Math.min(ratioWidth, ratioHeight);
+        float ratioMetrics = Math.max(ratioWidth, ratioHeight);
         return Math.round(fontsize * ratioMetrics);
     }
     /**
