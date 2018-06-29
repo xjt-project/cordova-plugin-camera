@@ -40,7 +40,7 @@ camera插件iOS、Android实现方式进行了扩展，对官方的扩展包括�
 | --- | --- | --- | --- |
 | shadeText | string | null | 可选参数，使用这个参数的时候Camera.DestinationType必须设置为FILE_URI。底部要添加的水印文字，如果要显示多行水印用\|\分开; 该支持iOS、Android |
 | compressMultiple | number | 10 | 可选参数。与shadeText配合使用，水印小图片的压缩倍数，设置的越大，返回的小图片尺寸就越低；该参数支持iOS、Android|
-| cameraType | number | 0 | 可选参数。调用相机还是调用系统相机。 0表示使用系统相机，1表示使用自定义相机；该参数参数只支持Android|
+| cameraType | number | 0 | 可选参数。调用相机还是调用系统相机。 0表示使用系统相机，1表示使用自定义相机；该参数支持iOS、Android |
 | isSaveOfflinePicture| number | 0 | 可选参数，是否需要将图片存储为离线图片（离线图片单独存了一个文件夹，可以长期存储在磁盘上），该参数专们针对离线巡检类； 0表示不需要存储为离线图片，1表示需要存储为离线图片， 默认为0；
 
 ##### 新增的方法
